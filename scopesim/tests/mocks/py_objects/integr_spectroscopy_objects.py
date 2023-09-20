@@ -21,9 +21,7 @@ def mock_aperture_list():
                   "shape": ["rect", "rect"]}
     kwargs = {"x_unit": "arcsec", "y_unit": "arcsec", "angle_unit": "deg",
               "pixel_scale": 0.1}
-    ap_list = efs.ApertureList(array_dict=array_dict, **kwargs)
-
-    return ap_list
+    return efs.ApertureList(array_dict=array_dict, **kwargs)
 
 
 def mock_aperture_list_mixed():
@@ -36,9 +34,7 @@ def mock_aperture_list_mixed():
                   "shape": ["round", "rect"]}
     kwargs = {"x_unit": "arcsec", "y_unit": "arcsec", "angle_unit": "deg",
               "pixel_scale": 0.1, "no_mask": False}
-    ap_list = efs.ApertureList(array_dict=array_dict, **kwargs)
-
-    return ap_list
+    return efs.ApertureList(array_dict=array_dict, **kwargs)
 
 
 def mock_aperture_list_single():
@@ -51,9 +47,7 @@ def mock_aperture_list_single():
                   "shape": ["rect"]}
     kwargs = {"x_unit": "arcsec", "y_unit": "arcsec", "angle_unit": "deg",
               "pixel_scale": 0.1}
-    ap_list = efs.ApertureList(array_dict=array_dict, **kwargs)
-
-    return ap_list
+    return efs.ApertureList(array_dict=array_dict, **kwargs)
 
 
 def mock_spectral_trace_list_single():
@@ -73,9 +67,7 @@ def mock_spectral_trace_list_single():
 
     trace_hdu = table_to_hdu(Table(names=names, data=[wA, s0, s1, x0, x1, y0, y1]))
     hdu_list = fits.HDUList([pri_hdu, idx_hdu, trace_hdu])
-    spt_list = efs.SpectralTraceList(hdulist=hdu_list)
-
-    return spt_list
+    return efs.SpectralTraceList(hdulist=hdu_list)
 
 
 def mock_spectral_trace_list():
@@ -113,9 +105,7 @@ def mock_spectral_trace_list():
     hdu_list = fits.HDUList([pri_hdu, idx_hdu] + trace_hdus)
     kwargs = {}
 
-    spt_list = efs.SpectralTraceList(hdulist=hdu_list, **kwargs)
-
-    return spt_list
+    return efs.SpectralTraceList(hdulist=hdu_list, **kwargs)
 
 
 def mock_spectral_trace_list_shear():
@@ -168,9 +158,7 @@ def mock_spectral_trace_list_shear():
     hdu_list = fits.HDUList([pri_hdu, idx_hdu] + trace_hdus)
     kwargs = {}
 
-    spt_list = efs.SpectralTraceList(hdulist=hdu_list, **kwargs)
-
-    return spt_list
+    return efs.SpectralTraceList(hdulist=hdu_list, **kwargs)
 
 
 def mock_detector_list():
@@ -186,18 +174,17 @@ def mock_detector_list():
               "xhw_unit": "mm", "yhw_unit": "mm", "pixsize_unit": "mm",
               "angle_unit": "deg", "gain_unit": "electron/adu",
               "image_plane_id": 0}
-    det_list = efs.DetectorList(array_dict=array_dict, **kwargs)
-
-    return det_list
+    return efs.DetectorList(array_dict=array_dict, **kwargs)
 
 
 def mock_config_yaml():
-    config = {"pixel_scale": 0.1,       # arcsec / pix
-              "plate_scale": 1,         # arcsec / mm
-              "wave_min": 1.0,
-              "wave_mid": 1.6,
-              "wave_max": 2.5}
-    return config
+    return {
+        "pixel_scale": 0.1,  # arcsec / pix
+        "plate_scale": 1,  # arcsec / mm
+        "wave_min": 1.0,
+        "wave_mid": 1.6,
+        "wave_max": 2.5,
+    }
 
 
 def mock_point_source_object():
@@ -214,10 +201,9 @@ def mock_point_source_object():
     up   = SourceSpectrum(Empirical1D, points=wave,
                           lookup_table=[1, 60] * PHOTLAM)
 
-    src = Source(x=[0, -2, 2], y=[1, -1, -1], ref=[0, 1, 2],
-                 spectra=[flat, up, down])
-
-    return src
+    return Source(
+        x=[0, -2, 2], y=[1, -1, -1], ref=[0, 1, 2], spectra=[flat, up, down]
+    )
 
 
 def mock_extended_source_object():
@@ -232,9 +218,7 @@ def mock_extended_source_object():
     hdu = fits.ImageHDU(data=im, header=fits.Header(hdr))
     spec = SourceSpectrum(Empirical1D, points=[1.0, 2.5] * u.um,
                           lookup_table=[1, 1] * PHOTLAM)
-    src = Source(image_hdu=hdu, spectra=spec)
-
-    return src
+    return Source(image_hdu=hdu, spectra=spec)
 
 
 def mock_gauss_psf():

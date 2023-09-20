@@ -77,11 +77,11 @@ def get_3d_shifts(effects, **kwargs):
         x_shifts = np.zeros(2)
         y_shifts = np.zeros(2)
 
-    shift_dict = {"wavelengths": z_edges,
-                  "x_shifts": x_shifts / 3600.,   # fov_grid returns [arcsec]
-                  "y_shifts": y_shifts / 3600.}   # get_3d_shifts returns [deg]
-
-    return shift_dict
+    return {
+        "wavelengths": z_edges,
+        "x_shifts": x_shifts / 3600.0,  # fov_grid returns [arcsec]
+        "y_shifts": y_shifts / 3600.0,
+    }
 
 
 def get_imaging_waveset(effects_list, **kwargs):
@@ -332,8 +332,7 @@ def get_spectroscopy_headers(effects, **kwargs):
                                        )
                    for sky_hdr in sky_hdrs]
     for hdr_list in fov_headers:
-        for hdr in hdr_list:
-            yield hdr
+        yield from hdr_list
     # TODO: check that each header is not larger than chunk_size
     # that's already done in get_imaging_headers, isn't it?
 
@@ -409,11 +408,9 @@ def combine_wavesets(*wavesets):
 
     def _get_waves(waves):
         for wave in waves:
-            if isinstance(wave, u.Quantity):
-                round_wave = wave.round(decimals).value
-            else:
-                round_wave = np.round(wave, decimals)
-            yield from round_wave
+            yield from wave.round(decimals).value if isinstance(
+                wave, u.Quantity
+            ) else np.round(wave, decimals)
 
     # NOTE: This function previously used np.sort(wave_set, kind="stable").
     #       If any issues occur with the buitin sorted, go back to that!

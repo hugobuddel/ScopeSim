@@ -196,13 +196,13 @@ class TestSetupLoggers:
     def test_no_loggers_present_in_initial_scopesim_load(self):
         hdlrs = logging.getLogger().handlers
 
-        assert not any([hdlr.name == "scopesim_file_logger" for hdlr in hdlrs])
+        assert all(hdlr.name != "scopesim_file_logger" for hdlr in hdlrs)
 
     def test_setup_loggers_has_no_loggers(self):
         utils.setup_loggers(log_to_file=False, log_to_console=False)
         hdlrs = logging.getLogger().handlers
 
-        assert not any([hdlr.name == "scopesim_file_logger" for hdlr in hdlrs])
+        assert all(hdlr.name != "scopesim_file_logger" for hdlr in hdlrs)
 
     def test_log_file_exist_when_file_logging_turned_on(self):
         utils.setup_loggers(log_to_file=True)

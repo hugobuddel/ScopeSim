@@ -315,15 +315,9 @@ class Detector(object):
             filename = self.cmds["OBS_OUTPUT_DIR"]
 
         if chips is not None:
-            if np.isscalar(chips):
-                ro_chips = [chips]
-            else:
-                ro_chips = chips
-        elif chips is None:
-            ro_chips = np.arange(len(self.chips))
+            ro_chips = [chips] if np.isscalar(chips) else chips
         else:
-            raise ValueError("Something wrong with ``chips``")
-
+            ro_chips = np.arange(len(self.chips))
         # Time stamp for FITS header
         #creation_date = datetime.now().isoformat(timespec='seconds')
         # timespec="seconds" throws an error on some python versions
@@ -346,10 +340,10 @@ class Detector(object):
                     val = val.params["filename"]
 
                 if isinstance(val, str) and len(val) > 35:
-                    val = "... " + val[-35:]
+                    val = f"... {val[-35:]}"
 
                 try:
-                    primary_hdu.header["HIERARCH "+key] = val
+                    primary_hdu.header[f"HIERARCH {key}"] = val
                 except NameError:   # any other exceptions possible?
                     pass
             hdulist.append(primary_hdu)
@@ -384,8 +378,6 @@ class Detector(object):
                 thishdu.header.extend(self.chips[i].wcs_fp.to_header(key='A'))
             except AttributeError:
                 print("No WCS_FP!")
-                pass
-
             thishdu.header["BUNIT"] = ("ADU", "")
             thishdu.header["EXPTIME"] = (self.exptime, "[s] Exposure time")
             thishdu.header["NDIT"] = (self.ndit, "Number of exposures")
@@ -394,20 +386,20 @@ class Detector(object):
             thishdu.header["GAIN"] = (self.chips[i].gain, "[e-/ADU]")
             thishdu.header["AIRMASS"] = (self.cmds["ATMO_AIRMASS"], "")
             thishdu.header["ZD"] = \
-                (airmass2zendist(self.cmds["ATMO_AIRMASS"]), "[deg]")
+                    (airmass2zendist(self.cmds["ATMO_AIRMASS"]), "[deg]")
 
 
             for key in self.cmds.cmds:
                 val = self.cmds.cmds[key]
                 if isinstance(val, str):
                     if len(val) > 35:
-                        val = "... " + val[-35:]
+                        val = f"... {val[-35:]}"
                 try:
-                    thishdu.header["HIERARCH "+key] = val
+                    thishdu.header[f"HIERARCH {key}"] = val
                 except NameError:   # any other exceptions possible?
                     pass
                 except ValueError:
-                    logging.warning("ValueError - Couldn't add keyword: "+key)
+                    logging.warning(f"ValueError - Couldn't add keyword: {key}")
             hdulist.append(thishdu)
 
         if to_disk:
@@ -449,7 +441,7 @@ class Detector(object):
             filename = self.params["OBS_OUTPUT_DIR"]
         if filename is None:
             raise ValueError("No output path was specified. " + \
-                             "Use either filename= or HXRG_OUTPUT_PATH=")
+                                 "Use either filename= or HXRG_OUTPUT_PATH=")
 
         hdu = fits.PrimaryHDU(self.array)
         hdu.header["PIX_RES"] = self.pix_res
@@ -460,7 +452,7 @@ class Detector(object):
         try:
             hdu.writeto(filename, clobber=True, checksum=True)
         except OSError:
-            logging.warning(filename+" exists and is busy. OS won't let me write")
+            logging.warning(f"{filename} exists and is busy. OS won't let me write")
 
 
 ################################################################################
@@ -658,15 +650,12 @@ class Chip(object):
 
         """
         if isinstance(signal, np.ndarray):
-            if signal.shape[0] == self.naxis1 and \
-               signal.shape[1] == self.naxis2:
-                if self.array is None:
-                    self.array = signal
-                else:
-                    self.array += signal
+            if signal.shape[0] != self.naxis1 or signal.shape[1] != self.naxis2:
+                raise ValueError(f"{str(signal.shape)} != {(self.naxis1, self.naxis2)}")
+            if self.array is None:
+                self.array = signal
             else:
-                raise ValueError(str(signal.shape) + " != " + \
-                                 str((self.naxis1, self.naxis2)))
+                self.array += signal
         elif not hasattr(signal, "__len__"):
             self.array += signal
 
@@ -823,7 +812,7 @@ class Chip(object):
         ro_times  = self._get_readout_times(scheme=cmds["FPA_READ_OUT_SCHEME"])
         out_array = np.zeros(self.array.shape, dtype=np.float32)
 
-        for n in range(self.ndit):
+        for _ in range(self.ndit):
             ro_cube = []
             for t in ro_times:
 
@@ -1037,10 +1026,7 @@ class Chip(object):
         else:
             noise_cube = np.zeros((self.naxis1, self.naxis2, n_frames))
 
-        if n_frames == 1:
-            return noise_cube[0,:,:]
-        else:
-            return noise_cube
+        return noise_cube[0,:,:] if n_frames == 1 else noise_cube
 
 
     def _get_readout_times(self, scheme="double_corr"):
@@ -1098,7 +1084,7 @@ class Chip(object):
             if os.path.exists(curve):
                 data = ioascii.read(curve)
             else:
-                raise ValueError("file doesn't exist: "+curve)
+                raise ValueError(f"file doesn't exist: {curve}")
         elif isinstance(curve, Table):
             data = curve
 
@@ -1109,10 +1095,7 @@ class Chip(object):
                               real_cts, measured_cts).reshape(in_array.shape)
         out_array = out_array.astype(np.float32)
 
-        if return_curve:
-            return out_array, data
-        else:
-            return out_array
+        return (out_array, data) if return_curve else out_array
 
 
 
@@ -1182,7 +1165,7 @@ def open(self, filename):
     """
 
     if not os.path.exists(filename):
-        raise FileNotFoundError(filename + " doesn't exist")
+        raise FileNotFoundError(f"{filename} doesn't exist")
 
     with fits.open(filename) as fp1:
         self.params.update(fp1[0].header)
@@ -1320,15 +1303,14 @@ def generate_hxrg_noise(cmds):
                         pca0_file=cmds["HXRG_PCA0_FILENAME"],
                         verbose=cmds["SIM_VERBOSE"])
 
-    # Make a noise file
-    noise = ng_h4rg.mknoise(o_file=cmds["HXRG_OUTPUT_PATH"],
-                            rd_noise=cmds["FPA_READOUT_MEDIAN"],
-                            pedestal=cmds["HXRG_PEDESTAL"],
-                            c_pink=cmds["HXRG_CORR_PINK"],
-                            u_pink=cmds["HXRG_UNCORR_PINK"],
-                            acn=cmds["HXRG_ALT_COL_NOISE"])
-
-    return noise
+    return ng_h4rg.mknoise(
+        o_file=cmds["HXRG_OUTPUT_PATH"],
+        rd_noise=cmds["FPA_READOUT_MEDIAN"],
+        pedestal=cmds["HXRG_PEDESTAL"],
+        c_pink=cmds["HXRG_CORR_PINK"],
+        u_pink=cmds["HXRG_UNCORR_PINK"],
+        acn=cmds["HXRG_ALT_COL_NOISE"],
+    )
 
 
 def make_noise_cube(num_layers=25, filename="FPA_noise.fits", multicore=True):
@@ -1374,8 +1356,7 @@ def make_noise_cube(num_layers=25, filename="FPA_noise.fits", multicore=True):
         pool = mp.Pool(processes=mp.cpu_count()-1)
         frames = pool.map(generate_hxrg_noise, (cmds)*num_layers)
     else:
-        frames = [generate_hxrg_noise(cmds) \
-                  for i in range(num_layers)]
+        frames = [generate_hxrg_noise(cmds) for _ in range(num_layers)]
 
     hdu = fits.HDUList([fits.PrimaryHDU(frames[0])] + \
                        [fits.ImageHDU(frames[i]) \

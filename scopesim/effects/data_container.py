@@ -107,11 +107,7 @@ class DataContainer:
         self.table = ioascii.read(self.meta["filename"],
                                   format="basic", guess=False)
         hdr_dict = utils.convert_table_comments_to_dict(self.table)
-        if isinstance(hdr_dict, dict):
-            self.headers += [hdr_dict]
-        else:
-            self.headers += [None]
-
+        self.headers += [hdr_dict] if isinstance(hdr_dict, dict) else [None]
         self.meta.update(self.table.meta)
         self.meta.update(hdr_dict)
         # self.table.meta.update(hdr_dict)
@@ -153,13 +149,13 @@ class DataContainer:
         if self.is_fits:
             if isinstance(self._file[ext], fits.BinTableHDU):
                 data_set = Table.read(self._file[ext], format="fits")
-            else:
-                if self._file[ext].data is not None:
-                    data_dims = len(self._file[ext].data.shape)
-                    if data_dims == 3 and layer is not None:
-                        data_set = self._file[ext].data[layer]
-                    else:
-                        data_set = self._file[ext].data
+            elif self._file[ext].data is not None:
+                data_dims = len(self._file[ext].data.shape)
+                data_set = (
+                    self._file[ext].data[layer]
+                    if data_dims == 3 and layer is not None
+                    else self._file[ext].data
+                )
         else:
             data_set = self.table
 

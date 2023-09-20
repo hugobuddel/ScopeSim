@@ -173,8 +173,7 @@ class HXRGNoise:
         Used for status reporting
         """
         if self.verbose is True:
-            print('NG: ' + message_text + ' at DATETIME = ', \
-                  datetime.datetime.now().time())
+            print(f'NG: {message_text} at DATETIME = ', datetime.datetime.now().time())
 
     def white_noise(self, nstep=None):
         """
@@ -307,7 +306,7 @@ class HXRGNoise:
         # Change this only if you know that your detector is different from a
         # typical H2RG.
         self.reference_pixel_noise_ratio = 0.8 if \
-            reference_pixel_noise_ratio is None else reference_pixel_noise_ratio
+                reference_pixel_noise_ratio is None else reference_pixel_noise_ratio
 
         # These are used only when generating cubes. They are
         # completely removed when the data are calibrated to
@@ -325,7 +324,7 @@ class HXRGNoise:
         # double sampling image or slope image.
         self.message('Initializing results cube')
         result = np.zeros((self.naxis3, self.naxis2, self.naxis1), \
-                          dtype=np.float32)
+                              dtype=np.float32)
         if self.naxis3 > 1:
             # Inject a bias pattern and kTC noise. If there are no reference pixels,
             # we know that we are dealing with a subarray. In this case, we do not
@@ -338,8 +337,8 @@ class HXRGNoise:
             # Add in some kTC noise. Since this should always come out
             # in calibration, we do not attempt to model it in detail.
             bias_pattern += \
-                         self.ktc_noise * \
-                         np.random.standard_normal((self.naxis2, self.naxis1))
+                             self.ktc_noise * \
+                             np.random.standard_normal((self.naxis2, self.naxis1))
 
             # Ensure that there are no negative pixel values. Data cubes
             # are converted to unsigned integer before writing.
@@ -358,16 +357,16 @@ class HXRGNoise:
             if w > 0: # Ref. pixel border exists
                 # Add both reference and regular pixels
                 here[:w, :] = r * self.rd_noise * \
-                              np.random.standard_normal((w, self.naxis1))
+                                  np.random.standard_normal((w, self.naxis1))
                 here[-w:, :] = r * self.rd_noise * \
-                               np.random.standard_normal((w, self.naxis1))
+                                   np.random.standard_normal((w, self.naxis1))
                 here[:, :w] = r * self.rd_noise * \
-                              np.random.standard_normal((self.naxis1, w))
+                                  np.random.standard_normal((self.naxis1, w))
                 here[:, -w:] = r * self.rd_noise * \
-                               np.random.standard_normal((self.naxis1, w))
+                                   np.random.standard_normal((self.naxis1, w))
                 # Make noisy regular pixels
                 here[w:-w, w:-w] = self.rd_noise * \
-                                  np.random.standard_normal((self.naxis2-2*w,
+                                      np.random.standard_normal((self.naxis2-2*w,
                                                              self.naxis1-2*w))
             else: # Ref. pixel border does not exist
                 # Add only regular pixels
@@ -380,23 +379,16 @@ class HXRGNoise:
         self.message('Adding c_pink noise')
         tt = self.c_pink * self.pink_noise('pink') # tt is a temp. variable
         tt = np.reshape(tt, (self.naxis3, self.naxis2+self.nfoh, \
-                             self.xsize+self.nroh))[:,:self.naxis2,:self.xsize]
+                                 self.xsize+self.nroh))[:,:self.naxis2,:self.xsize]
         for op in np.arange(self.n_out):
             x0 = op * self.xsize
             x1 = x0 + self.xsize
             if self.reverse_scan_direction is False:
                 # Teledyne's default fast-scan directions
-                if np.mod(op, 2) == 0:
-                    result[:, :, x0:x1] += tt
-                else:
-                    result[:, :, x0:x1] += tt[:, :, ::-1]
+                result[:, :, x0:x1] += tt if np.mod(op, 2) == 0 else tt[:, :, ::-1]
             else:
                 # Reverse the fast-scan directions.
-                if np.mod(op,2)==1:
-                    result[:,:,x0:x1] += tt
-                else:
-                    result[:,:,x0:x1] += tt[:,:,::-1]
-
+                result[:,:,x0:x1] += tt if np.mod(op,2)==1 else tt[:,:,::-1]
         # Add uncorrelated pink noise. Because this pink noise is stationary and
         # different for each output, we don't need to flip it.
         self.message('Adding u_pink noise')
@@ -405,7 +397,7 @@ class HXRGNoise:
             x1 = x0 + self.xsize
             tt = self.u_pink * self.pink_noise('pink')
             tt = np.reshape(tt, (self.naxis3, self.naxis2+self.nfoh, \
-                            self.xsize+self.nroh))[:,:self.naxis2,:self.xsize]
+                                self.xsize+self.nroh))[:,:self.naxis2,:self.xsize]
             result[:, :, x0:x1] += tt
 
         # Add ACN
@@ -468,7 +460,7 @@ class HXRGNoise:
         hdu.header.append(('U_PINK', self.u_pink, 'Uncorrelated pink'))
         hdu.header.append(('ACN', self.acn, 'Alternating column noise'))
         hdu.header.append(('PCA0', self.pca0_amp, \
-                           'PCA zero, AKA picture frame'))
+                               'PCA zero, AKA picture frame'))
         #hdu.header['HISTORY'] = 'Created_by_NGHXRG_version_' \
         #                        + str(self.nghxrg_version)
 

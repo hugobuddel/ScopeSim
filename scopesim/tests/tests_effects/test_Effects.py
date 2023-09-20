@@ -18,8 +18,7 @@ if MOCK_PATH not in rc.__search_path__:
 
 @pytest.fixture()
 def surf_list_file():
-    fname = os.path.join(MOCK_PATH, "LIST_mirrors_MICADO_Wide.tbl")
-    return fname
+    return os.path.join(MOCK_PATH, "LIST_mirrors_MICADO_Wide.tbl")
 
 
 class TestEffectInit:

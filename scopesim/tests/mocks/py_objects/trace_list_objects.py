@@ -103,13 +103,15 @@ def make_trace_table(sl, wl, xl, yl, pixel_size=0.015 * u.mm):
     if yn < xn:
         wl = wl.T
 
-    tbl = Table(data=[wl.flatten() * u.um,
-                      sl.flatten() * u.arcsec,
-                      xl.flatten() * pixel_size,
-                      yl.flatten() * pixel_size],
-                names=["wavelength", "s", "x", "y"])
-
-    return tbl
+    return Table(
+        data=[
+            wl.flatten() * u.um,
+            sl.flatten() * u.arcsec,
+            xl.flatten() * pixel_size,
+            yl.flatten() * pixel_size,
+        ],
+        names=["wavelength", "s", "x", "y"],
+    )
 
 
 def trace_0(xn=3, yn=41, wmin=0.8, wmax=2.4):
@@ -118,9 +120,7 @@ def trace_0(xn=3, yn=41, wmin=0.8, wmax=2.4):
     for i in range(len(xl)):
         xl[i], yl[i] = stretch(xl[i], yl[i], nx=250, ny=2000)
 
-    tbl = make_trace_table(sl, wl, xl, yl)
-
-    return tbl
+    return make_trace_table(sl, wl, xl, yl)
 
 
 def trace_1(xn=3, yn=16, wmin=1.2, wmax=2.4,
@@ -132,9 +132,7 @@ def trace_1(xn=3, yn=16, wmin=1.2, wmax=2.4,
         xl[i], yl[i] = translate(xl[i], yl[i], dx=x0, dy=y0)
         xl[i], yl[i] = shear(xl[i], yl[i], x0=x0, y0=y0, mx=mx, my=my)
 
-    tbl = make_trace_table(sl, wl, xl, yl)
-
-    return tbl
+    return make_trace_table(sl, wl, xl, yl)
 
 
 def trace_2(xn=3, yn=16, wmin=0.8, wmax=1.6,
@@ -146,9 +144,7 @@ def trace_2(xn=3, yn=16, wmin=0.8, wmax=1.6,
         xl[i], yl[i] = translate(xl[i], yl[i], dx=x0, dy=y0)
         xl[i], yl[i] = rotate(xl[i], yl[i], x0=x0, y0=y0, angle=angle)
 
-    tbl = make_trace_table(sl, wl, xl, yl)
-
-    return tbl
+    return make_trace_table(sl, wl, xl, yl)
 
 
 def trace_3(xn=3, yn=16, wmin=1.4, wmax=2.0,
@@ -160,9 +156,7 @@ def trace_3(xn=3, yn=16, wmin=1.4, wmax=2.0,
         xl[i], yl[i] = translate(xl[i], yl[i], dx=x0, dy=y0)
         xl[i], yl[i] = curvify(xl[i], yl[i], x0=x1, y0=y1)
 
-    tbl = make_trace_table(sl, wl, xl, yl)
-
-    return tbl
+    return make_trace_table(sl, wl, xl, yl)
 
 
 def trace_4(xn=3, yn=16, wmin=0.8, wmax=1.0,
@@ -174,9 +168,7 @@ def trace_4(xn=3, yn=16, wmin=0.8, wmax=1.0,
         xl[i], yl[i] = translate(xl[i], yl[i], dx=x0, dy=y0)
         xl[i], yl[i] = rotate(xl[i], yl[i], x0=x0, y0=y0, angle=90)
 
-    tbl = make_trace_table(sl, wl, xl, yl)
-
-    return tbl
+    return make_trace_table(sl, wl, xl, yl)
 
 
 def trace_5(xn=3, yn=16, wmin=2.1, wmax=2.4,
@@ -188,9 +180,7 @@ def trace_5(xn=3, yn=16, wmin=2.1, wmax=2.4,
         xl[i], yl[i] = translate(xl[i], yl[i], dx=x0, dy=y0)
         xl[i], yl[i] = shear(xl[i], yl[i], x0=x0, y0=y0, mx=-0.5)
 
-    tbl = make_trace_table(sl, wl, xl, yl)
-
-    return tbl
+    return make_trace_table(sl, wl, xl, yl)
 
 def trace_6(xn=16, yn=3, wmin=2.1, wmax=2.4,
             x0=1750, y0=-1750):
@@ -230,9 +220,7 @@ def id_table(traces_ids, descriptions=None):
     imp_ids = np.zeros(n).astype(int)
     data = [descrips, ext_ids, ap_ids, imp_ids]
 
-    tbl = Table(data=data, names=names)
-
-    return tbl
+    return Table(data=data, names=names)
 
 
 def plot_traces(traces):
@@ -240,9 +228,12 @@ def plot_traces(traces):
     for trace in traces:
         n = (len(trace.columns) + 1) // 3
         for i, c in zip(range(n), "brg"):
-            plt.scatter(trace["x"+str(i)] / pixel_size,
-                        trace["y"+str(i)] / pixel_size,
-                        c=trace["wavelength"], cmap="jet")
+            plt.scatter(
+                trace[f"x{str(i)}"] / pixel_size,
+                trace[f"y{str(i)}"] / pixel_size,
+                c=trace["wavelength"],
+                cmap="jet",
+            )
 
     plt.xlim(-2048, 2048)
     plt.ylim(-2048, 2048)
@@ -252,9 +243,12 @@ def plot_traces_mm(traces):
     for trace in traces:
         n = (len(trace.columns) + 1) // 3
         for i, c in zip(range(n), "brg"):
-            plt.scatter(trace["x"+str(i)],
-                        trace["y"+str(i)],
-                        c=trace["wavelength"], cmap="jet")
+            plt.scatter(
+                trace[f"x{str(i)}"],
+                trace[f"y{str(i)}"],
+                c=trace["wavelength"],
+                cmap="jet",
+            )
 
     plt.xlim(-30.72, 30.72)
     plt.ylim(-30.72, 30.72)

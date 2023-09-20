@@ -13,7 +13,7 @@ def combine_surface_effects_OLD(surface_effects):
     surf_list = [eff for eff in surface_effects
                  if isinstance(eff, efs.TERCurve)]
 
-    if len(surflist_list) == 0:
+    if not surflist_list:
         surf = empty_surface_list()
         surf.meta["name"] = "Radiometry Table"
         surflist_list += [surf]
@@ -78,10 +78,7 @@ def make_effect(effect_dict, **properties):
     if "kwargs" in effect_dict:
         effect_kwargs.update(effect_dict["kwargs"])  # individual effect kwargs
 
-    effect = effect_cls(**effect_kwargs)
-    # effect.meta.update(effect_meta_dict)  # is this needed? Seems redundant
-
-    return effect
+    return effect_cls(**effect_kwargs)
 
 
 def is_spectroscope(effects):
@@ -104,6 +101,4 @@ def scopesim_effect_classes(base_effect=efs.Effect):
     efs_dict = {".".join([cls.__module__, cls.__name__]).replace("scopesim.effects.", ""): cls
                 for name, cls in members
                 if hasattr(cls, "__mro__") and base_effect in cls.__mro__}
-    sorted_effects = {key: efs_dict[key] for key in sorted(efs_dict)}
-
-    return sorted_effects
+    return {key: efs_dict[key] for key in sorted(efs_dict)}

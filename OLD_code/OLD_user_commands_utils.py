@@ -38,18 +38,15 @@ def read_config(config_str):
 
     """
 
-    if isinstance(config_str, str):
-        if os.path.exists(config_str):
-            with open(config_str, 'r') as fp1:
-                lines = fp1.readlines()
-        else:
-            lines = [line for line in config_str.split("\n") if len(line) > 0]
-    else:
+    if not isinstance(config_str, str):
         raise ValueError("config_str must be a filename or multi-line string")
 
-    config_dict = lines_to_dict(lines)
-
-    return config_dict
+    if os.path.exists(config_str):
+        with open(config_str, 'r') as fp1:
+            lines = fp1.readlines()
+    else:
+        lines = [line for line in config_str.split("\n") if len(line) > 0]
+    return lines_to_dict(lines)
 
 
 def lines_to_dict(lines):
@@ -93,7 +90,7 @@ def lines_to_dict(lines):
         try:
             param, value = content.split(None, 1)
         except:
-            raise ValueError("Line is missing value: \n {}".format(line))
+            raise ValueError(f"Line is missing value: \n {line}")
 
         value = str_to_python_type(value)
         config_dict[param] = value
@@ -230,7 +227,7 @@ def convert_dict_strings_to_python_types(dic):
 
 def is_item_subcategory(name, dic):
     """Test if ``name`` is a subcategory of a :class:`.UserCommands` class"""
-    return name.upper() in set([key.split("_")[0] for key in dic])
+    return name.upper() in {key.split("_")[0] for key in dic}
 
 
 def get_subcategory(item, dic):

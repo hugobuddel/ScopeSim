@@ -35,8 +35,7 @@ def kwargs_dict():
 @pytest.fixture(name="imageplane", scope="class")
 def fixture_imageplane():
     """Instantiate an ImagePlane object"""
-    implane = ImagePlane(_image_hdu_square().header)
-    return implane
+    return ImagePlane(_image_hdu_square().header)
 
 
 class TestInit:

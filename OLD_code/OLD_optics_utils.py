@@ -31,9 +31,9 @@ def get_filter_curve(filter_name):
 
     fname = find_file(filter_name, silent=True)
     if fname is None:
-        fname = find_file("TC_filter_" + filter_name + ".dat")
-        if fname is None:
-            raise ValueError("filter not recognised: " + filter_name)
+        fname = find_file(f"TC_filter_{filter_name}.dat")
+    if fname is None:
+        raise ValueError(f"filter not recognised: {filter_name}")
 
     return sc.TransmissionCurve(filename=fname)
 
@@ -44,9 +44,10 @@ def get_filter_set(path=None):
     """
     if path is None:
         path = os.path.join(rc.__data_dir__, "data")
-    lst = [i.replace(".dat", "").split("TC_filter_")[-1]
-           for i in glob.glob(os.path.join(path, "TC_filter*.dat"))]
-    return lst
+    return [
+        i.replace(".dat", "").split("TC_filter_")[-1]
+        for i in glob.glob(os.path.join(path, "TC_filter*.dat"))
+    ]
 
 
 def plot_filter_set(path=None, filters="All", cmap="rainbow", filename=None,
@@ -103,8 +104,7 @@ def plot_filter_set(path=None, filters="All", cmap="rainbow", filename=None,
         cycler(color=cmap(np.linspace(0, 1, np.size(filter_names))))
 
     peaks = np.zeros(np.size(filter_names))
-    i = 0
-    for filter_name in filter_names:
+    for i, filter_name in enumerate(filter_names):
 
         tcurve = get_filter_curve(filter_name)
         wave = tcurve.lam[tcurve.val > 0.02]
@@ -112,8 +112,6 @@ def plot_filter_set(path=None, filters="All", cmap="rainbow", filename=None,
 
         lam_peak = wave[tran == np.max(tran)]
         peaks[i] = lam_peak[0]
-        i += 1
-
     ordered_names = [x for _, x in sorted(zip(peaks, filter_names))]
 
     for filter_name in ordered_names:

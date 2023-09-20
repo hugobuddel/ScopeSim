@@ -119,12 +119,12 @@ class DetectorList(Effect):
         self.meta.update(params)
         self.meta.update(kwargs)
 
-        # for backwards compatibility
-        new_colnames = {"xhw": "x_size",
-                        "yhw": "y_size",
-                        "pixsize": "pixel_size"}
-        mult_cols = {"xhw": 2., "yhw": 2., "pixsize": 1.}
         if isinstance(self.table, Table):
+            # for backwards compatibility
+            new_colnames = {"xhw": "x_size",
+                            "yhw": "y_size",
+                            "pixsize": "pixel_size"}
+            mult_cols = {"xhw": 2., "yhw": 2., "pixsize": 1.}
             for col, new_name in new_colnames.items():
                 if col in self.table.colnames:
                     self.table[col] = self.table[col] * mult_cols[col]
@@ -217,9 +217,7 @@ class DetectorList(Effect):
         else:
             raise ValueError("Could not determine which detectors are active: "
                              f"{self.meta['active_detectors']}, {self.table},")
-        tbl = utils.from_currsys(tbl)
-
-        return tbl
+        return utils.from_currsys(tbl)
 
     def detector_headers(self, ids=None):
         if ids is not None and all(isinstance(ii, int) for ii in ids):

@@ -277,8 +277,7 @@ class SpectralTrace:
             logging.warning("map_spectra_to_focal_plane: %d negative pixels",
                             np.sum(image < 0))
 
-        image_hdu = fits.ImageHDU(header=img_header, data=image)
-        return image_hdu
+        return fits.ImageHDU(header=img_header, data=image)
 
     def rectify(self, hdulist, interps=None, wcs=None, **kwargs):
         """Create 2D spectrum for a trace.
@@ -590,9 +589,9 @@ class SpectralTrace:
         for wave in np.unique(w):
             xx = x[w == wave]
             xx.sort()
-            dx = xx[-1] - xx[-2]
-
             if plot_wave:
+                dx = xx[-1] - xx[-2]
+
                 axes.text(x[w == wave].max() + 0.5 * dx,
                           y[w == wave].mean(),
                           str(wave), va="center", ha="left")
@@ -623,12 +622,7 @@ class SpectralTrace:
         return f"{self.__class__.__name__}({self.table!r}, **{self.meta!r})"
 
     def __str__(self):
-        msg = (f"<SpectralTrace> \"{self.trace_id}\" : "
-               f"[{self.wave_min:.4f}, {self.wave_max:.4f}]um : "
-               f"Ext {self.meta['extension_id']} : "
-               f"Aperture {self.meta['aperture_id']} : "
-               f"ImagePlane {self.meta['image_plane_id']}")
-        return msg
+        return f"""<SpectralTrace> \"{self.trace_id}\" : [{self.wave_min:.4f}, {self.wave_max:.4f}]um : Ext {self.meta['extension_id']} : Aperture {self.meta['aperture_id']} : ImagePlane {self.meta['image_plane_id']}"""
 
 
 class XiLamImage():
@@ -840,11 +834,7 @@ class Transform2D():
             # corresponding column in temp. This gives the diagonal of the
             # expression in the "grid" branch.
             result = (yvec * temp).sum(axis=0)
-            if not orig_shape:
-                result = np.float32(result)
-            else:
-                result = result.reshape(orig_shape)
-
+            result = np.float32(result) if not orig_shape else result.reshape(orig_shape)
         # Apply posttransform
         if self.posttransform is not None:
             result = self.posttransform[0](result, **self.posttransform[1])
@@ -962,15 +952,16 @@ def _xiy2xlam_fit(layout, params):
 
 def make_image_interpolations(hdulist, **kwargs):
     """Create 2D interpolation functions for images."""
-    interps = []
-    for hdu in hdulist:
-        if isinstance(hdu, fits.ImageHDU):
-            interps.append(
-                RectBivariateSpline(np.arange(hdu.header["NAXIS1"]),
-                                    np.arange(hdu.header["NAXIS2"]),
-                                    hdu.data, **kwargs)
-            )
-    return interps
+    return [
+        RectBivariateSpline(
+            np.arange(hdu.header["NAXIS1"]),
+            np.arange(hdu.header["NAXIS2"]),
+            hdu.data,
+            **kwargs
+        )
+        for hdu in hdulist
+        if isinstance(hdu, fits.ImageHDU)
+    ]
 
 
 # ..todo: Check whether the following functions are actually used

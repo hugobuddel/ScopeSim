@@ -180,8 +180,7 @@ class FieldOfView(FieldOfViewBase):
 
     def _calc_area_factor(self, field):
         bg_solid_angle = u.Unit(field.header["SOLIDANG"]).to(u.arcsec**-2)
-        area_factor = self.pixel_area * bg_solid_angle  # arcsec**2 * arcsec**-2
-        return area_factor
+        return self.pixel_area * bg_solid_angle
 
     def _make_spectrum_cubefields(self, fov_waveset):
         """
@@ -261,9 +260,9 @@ class FieldOfView(FieldOfViewBase):
             self._make_spectrum_backfields(fov_waveset),
             ), start=np.zeros_like(fov_waveset.value))
 
-        spectrum = SourceSpectrum(Empirical1D, points=fov_waveset,
-                                  lookup_table=canvas_flux)
-        return spectrum
+        return SourceSpectrum(
+            Empirical1D, points=fov_waveset, lookup_table=canvas_flux
+        )
 
     def _make_image_cubefields(self, area):
         """
@@ -415,8 +414,7 @@ class FieldOfView(FieldOfViewBase):
 
             # Pixel scale conversion
             field_data *= self._pixarea(field.header).value / self.pixel_area
-            field_hdu = fits.ImageHDU(data=field_data, header=field.header)
-            yield field_hdu
+            yield fits.ImageHDU(data=field_data, header=field.header)
 
     def _make_cube_imagefields(self, specs, spline_order):
         """
@@ -618,9 +616,7 @@ class FieldOfView(FieldOfViewBase):
             return self.image
         if self.cube is not None:
             return self.cube
-        if self.spectrum is not None:
-            return self.spectrum
-        return None
+        return self.spectrum if self.spectrum is not None else None
 
     @property
     def corners(self):
@@ -700,17 +696,7 @@ class FieldOfView(FieldOfViewBase):
 
     def __repr__(self):
         waverange = [self.meta["wave_min"].value, self.meta["wave_max"].value]
-        msg = (f"{self.__class__.__name__}({self.header!r}, {waverange!r}, "
-               f"{self.detector_header!r}, **{self.meta!r})")
-        return msg
+        return f"{self.__class__.__name__}({self.header!r}, {waverange!r}, {self.detector_header!r}, **{self.meta!r})"
 
     def __str__(self):
-        msg = (f"FOV id: {self.meta['id']}, with dimensions "
-               f"({self.header['NAXIS1']}, {self.header['NAXIS2']})\n"
-               f"Sky centre: ({self.header['CRVAL1']}, "
-               f"{self.header['CRVAL2']})\n"
-               f"Image centre: ({self.header['CRVAL1D']}, "
-               f"{self.header['CRVAL2D']})\n"
-               f"Wavelength range: ({self.meta['wave_min']}, "
-               f"{self.meta['wave_max']})um\n")
-        return msg
+        return f"FOV id: {self.meta['id']}, with dimensions ({self.header['NAXIS1']}, {self.header['NAXIS2']})\nSky centre: ({self.header['CRVAL1']}, {self.header['CRVAL2']})\nImage centre: ({self.header['CRVAL1D']}, {self.header['CRVAL2D']})\nWavelength range: ({self.meta['wave_min']}, {self.meta['wave_max']})um\n"

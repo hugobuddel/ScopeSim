@@ -213,14 +213,6 @@ class UserCommands:
         if "ignore_effects" in kwargs:
             self.ignore_effects = kwargs["ignore_effects"]
 
-        if "add_effects" in kwargs:
-            # ..todo: implement this
-            pass
-
-        if "override_effect_values" in kwargs:
-            # ..todo: implement this
-            pass
-
     def set_modes(self, modes=None):
         if not isinstance(modes, list):
             modes = [modes]
@@ -228,29 +220,26 @@ class UserCommands:
             if "properties" in defyam and "modes" in defyam["properties"]:
                 defyam["properties"]["modes"] = []
                 for mode in modes:
-                    if mode in self.modes_dict:
-                        defyam["properties"]["modes"].append(mode)
-                        if "deprecate" in self.modes_dict[mode]:
-                            logging.warning(self.modes_dict[mode]["deprecate"])
-                    else:
+                    if mode not in self.modes_dict:
                         raise ValueError(f"mode '{mode}' was not recognised")
 
+                    defyam["properties"]["modes"].append(mode)
+                    if "deprecate" in self.modes_dict[mode]:
+                        logging.warning(self.modes_dict[mode]["deprecate"])
         self.__init__(yamls=self.default_yamls)
 
     def list_modes(self):
-        if isinstance(self.modes_dict, dict):
-            modes = {}
-            for mode_name in self.modes_dict:
-                dic = self.modes_dict[mode_name]
-                desc = dic["description"] if "description" in dic else "<None>"
-                modes[mode_name] = desc
-                if "deprecate" in dic:
-                    modes[mode_name] += " (deprecated)"
+        if not isinstance(self.modes_dict, dict):
+            return "No modes found"
+        modes = {}
+        for mode_name in self.modes_dict:
+            dic = self.modes_dict[mode_name]
+            desc = dic["description"] if "description" in dic else "<None>"
+            modes[mode_name] = desc
+            if "deprecate" in dic:
+                modes[mode_name] += " (deprecated)"
 
-            msg = "\n".join([f"{key}: {value}" for key, value in modes.items()])
-        else:
-            msg = "No modes found"
-        return msg
+        return "\n".join([f"{key}: {value}" for key, value in modes.items()])
 
     @property
     def modes(self):
@@ -388,7 +377,7 @@ def load_yaml_dicts(filename):
     """
     yaml_dicts = []
     with open(filename) as f:
-        yaml_dicts += [dic for dic in yaml.full_load_all(f)]
+        yaml_dicts += list(yaml.full_load_all(f))
 
     return yaml_dicts
 
@@ -431,11 +420,10 @@ def list_local_packages(action="display"):
     main_pkgs = [pkg for pkg in pkgs if (pkg/"default.yaml").exists()]
     ext_pkgs = [pkg for pkg in pkgs if not (pkg/"default.yaml").exists()]
 
-    if action == "display":
-        msg = (f"\nLocal package directory:\n  {local_path}\n"
-               "Full packages [can be used with 'use_instrument=...']\n"
-               f"{main_pkgs}\n"
-               f"Support packages\n  {ext_pkgs}")
-        print(msg)
-    else:
+    if action != "display":
         return main_pkgs, ext_pkgs
+    msg = (f"\nLocal package directory:\n  {local_path}\n"
+           "Full packages [can be used with 'use_instrument=...']\n"
+           f"{main_pkgs}\n"
+           f"Support packages\n  {ext_pkgs}")
+    print(msg)

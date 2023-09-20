@@ -8,8 +8,7 @@ from OLD_code import OLD_simcado_user_commands as usr_cmds
 
 @pytest.fixture(scope="class")
 def empty_cmds():
-    cmd = usr_cmds.UserCommands()
-    return cmd
+    return usr_cmds.UserCommands()
 
 
 @pytest.mark.usefixtures("empty_cmds")

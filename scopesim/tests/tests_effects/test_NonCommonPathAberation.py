@@ -37,13 +37,16 @@ def fov_Ks():
 
 @pytest.fixture(scope="function")
 def ncpa_kwargs():
-    kwargs = {"pixel_scale": 0.004,
-              "wfe_rms_unit": "nm",
-              "array_dict": {"element": ["mirror", "entrance_window"],
-                             "material": ["gold", "glass"],
-                             "n_surfaces": [10, 18],
-                             "wfe_rms": [20, 10]}}
-    return kwargs
+    return {
+        "pixel_scale": 0.004,
+        "wfe_rms_unit": "nm",
+        "array_dict": {
+            "element": ["mirror", "entrance_window"],
+            "material": ["gold", "glass"],
+            "n_surfaces": [10, 18],
+            "wfe_rms": [20, 10],
+        },
+    }
 
 
 @pytest.mark.usefixtures("ncpa_kwargs")
@@ -140,7 +143,7 @@ class TestFunctionStrehl2Gauss:
         amplis = np.array([np.max(kernel) for kernel in kernels])
         ampli_srs = amplis / srs
 
-        assert np.all(0.96 < ampli_srs) and np.all(ampli_srs < 1.04)
+        assert np.all(ampli_srs > 0.96) and np.all(ampli_srs < 1.04)
 
         if PLOTS:
             plt.plot(amplis, srs, c="b")

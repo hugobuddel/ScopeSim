@@ -52,7 +52,7 @@ class TestFovGrid:
         atmo_disp = AtmosphericDispersion(**atmo_yaml_dict["properties"])
         response = atmo_disp.fov_grid()
         assert len(response) == 3
-        assert all([isinstance(x, np.ndarray) for x in response])
+        assert all(isinstance(x, np.ndarray) for x in response)
 
     def test_returns_non_with_wrong_which_keyword(self, atmo_yaml_dict):
         atmo_disp = AtmosphericDispersion(**atmo_yaml_dict["properties"])
@@ -71,7 +71,7 @@ class TestFovGrid:
         atmo_disp = AtmosphericDispersion(**atmo_yaml_dict["properties"])
         waves, dx, dy = atmo_disp.fov_grid()
         assert dx[0] - dx[-1]== approx(0.53, rel=1e-2)
-        assert all([y == approx(0) for y in dy])
+        assert all(y == approx(0) for y in dy)
 
     def test_returns_same_results_when_turned_30_degrees(self, atmo_yaml_dict):
         atmo_yaml_dict["properties"]["pupil_angle"] = 30

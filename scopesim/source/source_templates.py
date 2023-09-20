@@ -25,9 +25,14 @@ def empty_sky(flux=0):
     sky : Source
 
     """
-    sky = Source(lam=[0.3, 3.0]*u.um, spectra=[flux, flux]*PHOTLAM,
-                 x=[0], y=[0], ref=[0], weight=[1])
-    return sky
+    return Source(
+        lam=[0.3, 3.0] * u.um,
+        spectra=[flux, flux] * PHOTLAM,
+        x=[0],
+        y=[0],
+        ref=[0],
+        weight=[1],
+    )
 
 
 @deprecated_renamed_argument("mag", "flux", "0.1.5")
@@ -147,9 +152,7 @@ def star_field(n, mmin, mmax, width, height=None, use_grid=False):
                 names=["x", "y", "weight", "ref", "mag"],
                 units=[u.arcsec, u.arcsec, None, None, mag_unit])
     tbl.meta["photometric_system"] = "vega" if mag_unit == u.mag else "ab"
-    stars = Source(spectra=spec, table=tbl)
-
-    return stars
+    return Source(spectra=spec, table=tbl)
 
 
 def uniform_illumination(xs, ys, pixel_scale, flux=None, spectrum=None):
@@ -234,9 +237,7 @@ def uniform_illumination(xs, ys, pixel_scale, flux=None, spectrum=None):
     hdu.header["SPECMAG"] = 0
     hdu.header["SPECUNIT"] = str(mag_unit)
 
-    src = Source(image_hdu=hdu, spectra=[spec])
-
-    return src
+    return Source(image_hdu=hdu, spectra=[spec])
 
 
 def uniform_source(sp=None, extent=60):
@@ -263,9 +264,7 @@ def uniform_source(sp=None, extent=60):
     header = make_img_wcs_header(pixel_scale=1, image_size=data.shape)
     hdu = fits.ImageHDU(header=header, data=data)
 
-    src = Source(spectra=sp, image_hdu=hdu)
-
-    return src
+    return Source(spectra=sp, image_hdu=hdu)
 
 
 def vega_spectrum(mag=0):

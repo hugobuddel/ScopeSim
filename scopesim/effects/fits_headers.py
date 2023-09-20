@@ -237,11 +237,11 @@ class ExtraFitsKeywords(Effect):
             with open(yaml_file, encoding="utf-8") as file:
                 # possible multiple yaml docs in a file
                 # --> returns list even for a single doc
-                tmp_dicts.extend(dic for dic in yaml.full_load_all(file))
+                tmp_dicts.extend(iter(yaml.full_load_all(file)))
 
         if self.meta["yaml_string"] is not None:
             yml = self.meta["yaml_string"]
-            tmp_dicts.extend(dic for dic in yaml.full_load_all(yml))
+            tmp_dicts.extend(iter(yaml.full_load_all(yml)))
 
         if self.meta["header_dict"] is not None:
             if not isinstance(self.meta["header_dict"], list):
@@ -367,7 +367,7 @@ def flatten_dict(dic, base_key="", flat_dict=None,
                 value = str(value)
 
             if isinstance(value, (list, np.ndarray)):
-                value = f"{value.__class__.__name__}:{str(list(value))}"
+                value = f"{value.__class__.__name__}:{list(value)}"
                 max_len = 80 - len(flat_key)
                 if len(value) > max_len:
                     value = f"{value[:max_len-4]} ..."
@@ -377,11 +377,7 @@ def flatten_dict(dic, base_key="", flat_dict=None,
                 value = value.isoformat()
 
             # Add the flattened KEYWORD = (value, comment) to the header dict
-            if comment:
-                flat_dict[flat_key] = (value, str(comment))
-            else:
-                flat_dict[flat_key] = value
-
+            flat_dict[flat_key] = (value, str(comment)) if comment else value
     return flat_dict
 
 

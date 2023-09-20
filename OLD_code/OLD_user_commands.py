@@ -51,7 +51,7 @@ class UserCommands:
                 new_input = fname
             tmp_cmds = cutils.read_config(new_input)
         else:
-            raise ValueError("Cannot update with type: " + type(new_input))
+            raise ValueError(f"Cannot update with type: {type(new_input)}")
 
         # Use self.update so that we reject all the invalid keywords
         for key in tmp_cmds:
@@ -72,7 +72,7 @@ class UserCommands:
                 _yaml_dicts += [yaml_obj]
             elif isinstance(yaml_obj, str):
                 with open(find_file(yaml_obj)) as f:
-                    _yaml_dicts += [dic for dic in yaml.full_load_all(f)]
+                    _yaml_dicts += list(yaml.full_load_all(f))
 
         self._yaml_dicts = _yaml_dicts
         return self._yaml_dicts
@@ -85,7 +85,7 @@ class UserCommands:
 
     def __setitem__(self, key, val):
         if key not in self.cmds:
-            logging.warning("{} not in self.keys. Ignoring.".format(key))
+            logging.warning(f"{key} not in self.keys. Ignoring.")
             return None
 
         self.cmds[key] = cutils.str_to_python_type(val)

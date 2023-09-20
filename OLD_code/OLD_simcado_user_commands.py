@@ -246,7 +246,7 @@ class UserCommands(object):
             self.select_filter(filter_name)
 
         if self.verbose and filename is not None:
-            print("Read in parameters from " + filename)
+            print(f"Read in parameters from {filename}")
 
     def update(self, new_input):
         """
@@ -303,7 +303,7 @@ class UserCommands(object):
         elif isinstance(new_input, str):
             tmp_cmds = cutils.read_config(new_input)
         else:
-            raise ValueError("Cannot update with type: " + type(new_input))
+            raise ValueError(f"Cannot update with type: {type(new_input)}")
 
         for key in tmp_cmds:
             self[key] = tmp_cmds[key]
@@ -357,7 +357,7 @@ class UserCommands(object):
                 val = self[key]
                 if key == "FPA_CHIP_LAYOUT" and "\n" in val:
                     val = "small"
-                outstr += key.ljust(25)+"  "+str(val) + "\n"
+                outstr += f"{key.ljust(25)}  {str(val)}" + "\n"
             outstr += "\n"
         with open(filename, "w") as fd1:
             fd1.write(outstr)
@@ -392,10 +392,11 @@ class UserCommands(object):
 
         pkg_dir = self._find_package_path(instrument_name)
         if pkg_dir is None:
-            raise ValueError("{} package was not found in the folder: "
-                             "\n {}".format(instrument_name, pkg_dir))
+            raise ValueError(
+                f"{instrument_name} package was not found in the folder: \n {pkg_dir}"
+            )
 
-        pkg_base_file = os.path.join(pkg_dir, instrument_name+".config")
+        pkg_base_file = os.path.join(pkg_dir, f"{instrument_name}.config")
         self.update(pkg_base_file)
         self._find_files()
 
@@ -427,8 +428,9 @@ class UserCommands(object):
         if mode_path is None:
             raise ValueError("Instrument package isn't set. mode_path is None")
         elif not os.path.exists(mode_path):
-            raise ValueError("{} mode file was not found in the folder: "
-                             "\n {}".format(mode_name, mode_path))
+            raise ValueError(
+                f"{mode_name} mode file was not found in the folder: \n {mode_path}"
+            )
 
         self.update(mode_path)
         self._find_files()
@@ -469,15 +471,14 @@ class UserCommands(object):
 
             elif cutils.extract_filter_name(new_filter) in self.list("filters"):
                 filter_name = cutils.extract_filter_name(new_filter)
-                full_name = "TC_filter_{}.dat".format(filter_name)
+                full_name = f"TC_filter_{filter_name}.dat"
                 self.cmds["INST_FILTER_TC"] = full_name
 
             else:
-                logging.warning("{} was not found".format(new_filter))
+                logging.warning(f"{new_filter} was not found")
 
         else:
-            raise TypeError("{} must have type `str` or "
-                            "`TransmissionCurve`".format(new_filter))
+            raise TypeError(f"{new_filter} must have type `str` or `TransmissionCurve`")
         self._find_files()
 
     def list(self, what="modes", pattern=None):
@@ -514,13 +515,13 @@ class UserCommands(object):
 
         if self.inst_pkg_path is None:
             logging.warning("SIM_INSTRUMENT_PACKAGE is not set")
-            my_list = []
+            return []
         else:
-            glob_list = glob.glob(self.inst_pkg_path + "/*" + pattern + "*")
-            my_list = [os.path.basename(mode).split(".")[0].replace(pattern, "")
-                       for mode in glob_list]
-
-        return my_list
+            glob_list = glob.glob(f"{self.inst_pkg_path}/*{pattern}*")
+            return [
+                os.path.basename(mode).split(".")[0].replace(pattern, "")
+                for mode in glob_list
+            ]
 
     def _convert_python_types(self):
         """Convert string "none" values into python ``None`` values"""
@@ -585,8 +586,7 @@ class UserCommands(object):
                 fname = find_file(keyval, path=new_search_path, silent=silent)
                 if fname is None:
                     broken_paths += [keyval]
-                    logging.warning("Keyword "+key+" path doesn't exist: "
-                                  + keyval)
+                    logging.warning(f"Keyword {key} path doesn't exist: {keyval}")
                 else:
                     self.cmds[key] = fname
 
@@ -608,13 +608,11 @@ class UserCommands(object):
                 psf_path = self["SCOPE_PSF_FILE"]
             else:
                 psf_path = None
-                logging.warning("PSF file not found: {}"
-                              "".format(self["SCOPE_PSF_FILE"]))
+                logging.warning(f'PSF file not found: {self["SCOPE_PSF_FILE"]}')
         elif svr.get_path(self["SCOPE_PSF_FILE"]) is not None:
             psf_path = svr.get_path(self["SCOPE_PSF_FILE"])
         else:
-            logging.warning("PSF file not found in the DB: {}"
-                          "".format(self["SCOPE_PSF_FILE"]))
+            logging.warning(f'PSF file not found in the DB: {self["SCOPE_PSF_FILE"]}')
             psf_path = None
 
         return psf_path
@@ -740,8 +738,9 @@ class UserCommands(object):
             full_pkg_path = os.path.join(downloads_path, pkg_path)
 
             if not os.path.exists(full_pkg_path):
-                raise ValueError("{} is given in the database, but doesn't "
-                                 "exist".format(full_pkg_path))
+                raise ValueError(
+                    f"{full_pkg_path} is given in the database, but doesn't exist"
+                )
 
         return full_pkg_path
 
@@ -765,7 +764,7 @@ class UserCommands(object):
 
     def __setitem__(self, key, val):
         if key not in self.cmds:
-            logging.warning("{} not in self.keys. Ignoring.".format(key))
+            logging.warning(f"{key} not in self.keys. Ignoring.")
             return None
 
         self.cmds[key] = cutils.str_to_python_type(val)
@@ -827,12 +826,10 @@ class UserCommands(object):
             elif isinstance(self.cmds["INST_WFE"], (float, int)):
                 wfe, num = float(self.cmds["INST_WFE"]), 1
             print(num, wfe)
-            tot_wfe = np.sqrt(np.sum(num * wfe**2))
+            return np.sqrt(np.sum(num * wfe**2))
         else:
             logging.warning("INST_WFE is None. Returning zero wavefront error")
-            tot_wfe = 0
-
-        return tot_wfe
+            return 0
 
     @property
     def mirrors_telescope(self):

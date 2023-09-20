@@ -289,15 +289,7 @@ class SkycalcTERCurve(AtmosphericTERCurve):
             self.load_skycalc_table()
 
     def load_skycalc_table(self):
-        use_local_file = from_currsys(self.meta["use_local_skycalc_file"])
-        if not use_local_file:
-            self.skycalc_conn = skycalc_ipy.SkyCalc()
-            tbl = self.query_server()
-
-            if "name" not in self.meta:
-                self.meta["name"] = self.skycalc_conn["observatory"]
-
-        else:
+        if use_local_file := from_currsys(self.meta["use_local_skycalc_file"]):
             path = find_file(use_local_file)
             fits_tbl = fits.getdata(path, ext=1)
             fits_hdr = fits.getheader(path, ext=0)
@@ -310,6 +302,13 @@ class SkycalcTERCurve(AtmosphericTERCurve):
             tbl_small.meta["fits_header"] = dict(fits_hdr)
             tbl_small.add_columns([tbl["lam"], tbl["trans"], tbl["flux"]])
             tbl = tbl_small
+
+        else:
+            self.skycalc_conn = skycalc_ipy.SkyCalc()
+            tbl = self.query_server()
+
+            if "name" not in self.meta:
+                self.meta["name"] = self.skycalc_conn["observatory"]
 
         for i, colname in enumerate(["wavelength", "transmission", "emission"]):
             tbl.columns[i].name = colname
@@ -379,15 +378,14 @@ class FilterCurve(TERCurve):
     def __init__(self, **kwargs):
         if not np.any([key in kwargs for key in ["filename", "table",
                                                  "array_dict"]]):
-            if "filter_name" in kwargs and "filename_format" in kwargs:
-                filt_name = from_currsys(kwargs["filter_name"])
-                file_format = from_currsys(kwargs["filename_format"])
-                kwargs["filename"] = file_format.format(filt_name)
-            else:
+            if "filter_name" not in kwargs or "filename_format" not in kwargs:
                 raise ValueError("FilterCurve must be passed one of "
                                  "(`filename`, `array_dict`, `table`) or both "
                                  f"(`filter_name`, `filename_format`): {kwargs}")
 
+            filt_name = from_currsys(kwargs["filter_name"])
+            file_format = from_currsys(kwargs["filename_format"])
+            kwargs["filename"] = file_format.format(filt_name)
         super().__init__(**kwargs)
         if self.table is None:
             raise ValueError("Could not initialise filter. Either filename "
@@ -438,12 +436,7 @@ class FilterCurve(TERCurve):
         # noinspection PyProtectedMember
         thru = self.surface._get_ter_property("transmission", fmt="array")
         mask = thru >= 0.5
-        if any(mask):
-            dwave = wave[mask][-1] - wave[mask][0]
-        else:
-            dwave = 0 * wave.unit
-
-        return dwave
+        return wave[mask][-1] - wave[mask][0] if any(mask) else 0 * wave.unit
 
     @property
     def centre(self):
@@ -546,9 +539,7 @@ class SpanishVOFilterCurve(FilterCurve):
     def __init__(self, **kwargs):
         required_keys = ["observatory", "instrument", "filter_name"]
         check_keys(kwargs, required_keys, action="error")
-        filt_str = "{}/{}.{}".format(kwargs["observatory"],
-                                     kwargs["instrument"],
-                                     kwargs["filter_name"])
+        filt_str = f'{kwargs["observatory"]}/{kwargs["instrument"]}.{kwargs["filter_name"]}'
         kwargs["name"] = kwargs["filter_name"]
         kwargs["svo_id"] = filt_str
 
@@ -606,11 +597,8 @@ class FilterWheelBase(Effect):
 
     @property
     def current_filter(self):
-        filter_eff = None
         filt_name = from_currsys(self.meta["current_filter"])
-        if filt_name is not None:
-            filter_eff = self.filters[filt_name]
-        return filter_eff
+        return self.filters[filt_name] if filt_name is not None else None
 
     def __getattr__(self, item):
         return getattr(self.current_filter, item)
@@ -656,10 +644,10 @@ class FilterWheelBase(Effect):
         blue = centres - 0.5 * widths
         red = centres + 0.5 * widths
 
-        tbl = Table(names=["name", "centre", "width", "blue cutoff", "red cutoff"],
-                    data=[names, centres, widths, blue, red])
-
-        return tbl
+        return Table(
+            names=["name", "centre", "width", "blue cutoff", "red cutoff"],
+            data=[names, centres, widths, blue, red],
+        )
 
 
 class FilterWheel(FilterWheelBase):
@@ -902,19 +890,16 @@ class ADCWheel(Effect):
 
     def change_adc(self, adcname=None):
         """Change the current ADC."""
-        if not adcname or adcname in self.adcs.keys():
-            self.meta["current_adc"] = adcname
-            self.include = adcname
-        else:
+        if adcname and adcname not in self.adcs.keys():
             raise ValueError(f"Unknown ADC requested: {adcname}")
+        self.meta["current_adc"] = adcname
+        self.include = adcname
 
     @property
     def current_adc(self):
         """Return the currently used ADC."""
         curradc = from_currsys(self.meta["current_adc"])
-        if not curradc:
-            return False
-        return self.adcs[curradc]
+        return False if not curradc else self.adcs[curradc]
 
     def __getattr__(self, item):
         return getattr(self.current_adc, item)
@@ -925,9 +910,7 @@ class ADCWheel(Effect):
         adcs = self.adcs.values()
         tmax = np.array([adc.data["transmission"].max() for adc in adcs])
 
-        tbl = Table(names=["name", "max_transmission"],
-                    data=[names, tmax])
-        return tbl
+        return Table(names=["name", "max_transmission"], data=[names, tmax])
 
 
 def _guard_plot_axes(which, axes):
@@ -935,9 +918,8 @@ def _guard_plot_axes(which, axes):
         if not isinstance(axes, Collection):
             raise TypeError(("axes must be collection of axes if which "
                              "contains more than one element"))
-        if not len(axes) == len(which):
+        if len(axes) != len(which):
             raise ValueError("len of which and axes must match")
-    else:
-        if isinstance(axes, Collection):
-            raise TypeError(("axes must be a single axes object if which "
-                             "contains only one element"))
+    elif isinstance(axes, Collection):
+        raise TypeError(("axes must be a single axes object if which "
+                         "contains only one element"))

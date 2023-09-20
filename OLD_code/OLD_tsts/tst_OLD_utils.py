@@ -25,7 +25,6 @@ class TestParseConfig:
         dic = cmd_utils.lines_to_dict(invalid_lines)
 
         logging.warning("Bogus data passes silently through parse_config()")
-        pass
 
     def test_raises_exception_if_input_is_not_list(self):
         invalid_lines = "One point twenty-one Jigawatts!"
@@ -101,8 +100,8 @@ class TestConvertDictStringsToPythonTypes:
     def test_nones_are_replaces(self):
         dic = {"A" : "none", "B" : "None", "C" : "NONE", "D" : "nOnE"}
         new_dic = cmd_utils.convert_dict_strings_to_python_types(dic)
-        for key in dic:
-            assert dic[key] is None
+        for value in dic.values():
+            assert value is None
 
 
 class TestStrToPythonType:

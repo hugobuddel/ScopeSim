@@ -174,14 +174,16 @@ class TransmissionCurve(object):
             lam = self.params["lam"]
             val = self.params["val"]
 
-        # test if it is a skycalc file
         elif self.params["filename"] is not None:
             filename = find_file(self.params["filename"])
 
             if ".fits" in filename:
                 hdr = fits.getheader(filename)
-                if any(["SKYCALC" in hdr[i] for i in range(len(hdr))
-                        if isinstance(hdr[i], str)]):
+                if any(
+                    "SKYCALC" in hdr[i]
+                    for i in range(len(hdr))
+                    if isinstance(hdr[i], str)
+                ):
                     if self.params["Type"] == "Emission":
                         lam = fits.getdata(filename)["lam"]
                         val = fits.getdata(filename)["flux"]
@@ -260,16 +262,13 @@ class TransmissionCurve(object):
         if self.params["use_default_lam"]:
             lam_tmp = self.params["default_lam"]
             self.params["on_default_lam"] = True
+        elif hasattr(bins, "__len__"):
+            lam_tmp = bins
+
+
         else:
-            # if bins is a single number, use it as the bin width
-            # else as the bin centres
-            if not hasattr(bins, "__len__"):
-                lam_tmp = np.arange(self.lam_orig[0],
-                                    self.lam_orig[-1] + 1E-7, bins)
-            else:
-                lam_tmp = bins
-
-
+            lam_tmp = np.arange(self.lam_orig[0],
+                                self.lam_orig[-1] + 1E-7, bins)
         lam_res = lam_tmp[1] - lam_tmp[0]
         if self.params["min_step"] >= lam_res:
             logging.warning("min_step > resample resolution. Can't resample")
@@ -381,18 +380,14 @@ class TransmissionCurve(object):
         """
 
         tbl = astropy.table.Table.read(self.params["filename"],format="ascii",header_start=-1)
-        
-        meta = tbl.meta      
 
-        if not meta:
-            cmts_dict = {"comments": ""}
-
-        else:
-            cmts_list = meta["comments"]
-            cmts_str  = "\n".join(cmts_list)
-            cmts_dict = yaml.full_load(cmts_str)
+        if meta := tbl.meta:
+            cmts_dict = yaml.full_load("\n".join(meta["comments"]))
             if type(cmts_dict) is str:
                 cmts_dict={"comments":cmts_dict}
+
+        else:
+            cmts_dict = {"comments": ""}
 
         cmts_dict["filename"] = self.params["filename"]
         return cmts_dict
@@ -421,19 +416,18 @@ class TransmissionCurve(object):
 
         """
         cmts_dict = self.filter_info()
-        
+
         filter_table = astropy.table.Table()
-        keys = [k for k in cmts_dict.keys()]
+        keys = list(cmts_dict.keys())
 
         req_keys = ['filename', 'center', 'width', 'blue_cutoff', 'red_cutoff', 
                     'author', 'source', 'date_created', 'date_modified', 'status', 'type']
-	
-        if np.all([k in req_keys for k in keys]):
-            for keyword in req_keys:
-                col = astropy.table.Column(name=keyword, data=(cmts_dict[keyword],))
-                filter_table.add_column(col)
-        else:
+
+        if not np.all([k in req_keys for k in keys]):
             raise ValueError(self.params["filename"] + " is not a ScopeSim filter")
+        for keyword in req_keys:
+            col = astropy.table.Column(name=keyword, data=(cmts_dict[keyword],))
+            filter_table.add_column(col)
         return filter_table
 
 
@@ -585,9 +579,7 @@ class EmissionCurve(TransmissionCurve):
             Assuming ph/(s m2 micron arcsec2)""", RuntimeWarning)
         default_params.update(kwargs)
 
-        if default_params["area"] < 1E-6:
-            default_params["area"] = 1E-6
-
+        default_params["area"] = max(default_params["area"], 1E-6)
         if filename is not None:
             default_params["filename"] = filename
 
@@ -646,18 +638,15 @@ class EmissionCurve(TransmissionCurve):
 
         if lam_min > self.lam[-1] or lam_max < self.lam[0]:
             logging.warning("wavelength limits outside wavelength range")
-            photons = 0
+            return 0
+        elif (lam_max - lam_min) < 2 * self.res:
+            zoom = 10
+            lam_zoom = np.linspace(lam_min, lam_max, zoom)
+            spec_zoom = np.interp(lam_zoom, self.lam, self.val) / zoom
+            return np.sum(spec_zoom)
         else:
-            if (lam_max - lam_min) < 2 * self.res:
-                zoom = 10
-                lam_zoom = np.linspace(lam_min, lam_max, zoom)
-                spec_zoom = np.interp(lam_zoom, self.lam, self.val) / zoom
-                photons = np.sum(spec_zoom)
-            else:
-                mask = (self.lam >= lam_min) * (self.lam < lam_max)
-                photons = np.sum(self.val[mask])
-
-        return photons
+            mask = (self.lam >= lam_min) * (self.lam < lam_max)
+            return np.sum(self.val[mask])
 
 
 class BlackbodyCurve(EmissionCurve):
@@ -764,15 +753,15 @@ def get_sky_spectrum(fname, airmass, return_type=None, **kwargs):
     """
 
     if not os.path.exists(fname):
-        raise OSError("File doesn't exist: " + fname)
+        raise OSError(f"File doesn't exist: {fname}")
 
     data = ioascii.read(fname)
     tbl_airmass = np.array([float(i[1:]) for i in data.colnames[2:]])
 
     lam = data[data.colnames[0]]
 
-    if "X" + str(float(airmass)) in data.colnames:
-        val = data["X" + str(float(airmass))]
+    if f"X{float(airmass)}" in data.colnames:
+        val = data[f"X{float(airmass)}"]
 
 
     elif airmass > 1 and airmass < 3:
@@ -784,14 +773,13 @@ def get_sky_spectrum(fname, airmass, return_type=None, **kwargs):
 
         # get the weights for summing the two columns
         f1, f0 = (airmass - x0, x1 - airmass) / w    # backwards for a reason!
-        val = f0 * data["X" + str(x0)] + f1 * data["X" + str(x1)]
+        val = f0 * data[f"X{str(x0)}"] + f1 * data[f"X{str(x1)}"]
     else:
         print("Column not found")
 
-    if return_type is not None:
-        if "trans" in return_type.lower():
-            return TransmissionCurve(lam=lam, val=val, **kwargs)
-        elif "emis" in return_type.lower():
-            return EmissionCurve(lam=lam, val=val, **kwargs)
-    else:
+    if return_type is None:
         return lam, val
+    if "trans" in return_type.lower():
+        return TransmissionCurve(lam=lam, val=val, **kwargs)
+    elif "emis" in return_type.lower():
+        return EmissionCurve(lam=lam, val=val, **kwargs)

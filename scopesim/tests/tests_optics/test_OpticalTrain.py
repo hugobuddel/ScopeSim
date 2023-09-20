@@ -268,7 +268,7 @@ class TestSetItems:
     def test_effect_include_can_be_toggled_with_setitem(self, simplecado_opt):
         assert simplecado_opt["dark_current"].include is True
         simplecado_opt["dark_current"].include = False
-        assert simplecado_opt["dark_current"].include is False
+        assert not simplecado_opt["dark_current"].include
         assert simplecado_opt["dark_current"].meta["include"] is False
 
 
@@ -277,9 +277,9 @@ class TestListEffects:
     def test_effects_listed_in_table(self, simplecado_opt):
         assert isinstance(simplecado_opt.effects, Table)
         simplecado_opt["dark_current"].include = False
-        assert bool(simplecado_opt.effects["included"][1]) is False
+        assert not bool(simplecado_opt.effects["included"][1])
         simplecado_opt["alt_dark_current"].include = True
-        assert bool(simplecado_opt.effects["included"][2]) is True
+        assert bool(simplecado_opt.effects["included"][2])
 
         print("\n", simplecado_opt.effects)
 

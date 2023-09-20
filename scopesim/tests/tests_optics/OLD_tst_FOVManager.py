@@ -157,7 +157,7 @@ class TestGenerateFOVsSpectroscopyMode:
         fovs = fov_mgr.fovs
         print(len(fovs))
 
-        assert all([isinstance(fov, FieldOfView) for fov in fovs])
+        assert all(isinstance(fov, FieldOfView) for fov in fovs)
 
         if PLOTS:
             implane = ImagePlane(det_list.image_plane_header)

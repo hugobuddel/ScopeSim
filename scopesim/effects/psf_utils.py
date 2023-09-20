@@ -99,9 +99,7 @@ def make_strehl_map_from_table(tbl, pixel_scale=1*u.arcsec):
                                            np.array([-25, 25]) / 3600.,
                                            pixel_scale=1/3600)
 
-    map_hdu = fits.ImageHDU(header=hdr, data=smap)
-
-    return map_hdu
+    return fits.ImageHDU(header=hdr, data=smap)
 
 
 def rescale_kernel(image, scale_factor, spline_order=None):
@@ -136,9 +134,7 @@ def cutout_kernel(image, fov_header):
     dy = 0.5 * fov_header["NAXIS2"]
     x0, x1 = max(0, int(xcen-dx)), min(w, int(xcen+dx))
     y0, y1 = max(0, int(ycen-dy)), min(w, int(ycen+dy))
-    image_cutout = image[y0:y1, x0:x1]
-
-    return image_cutout
+    return image[y0:y1, x0:x1]
 
 
 def get_strehl_cutout(fov_header, strehl_imagehdu):
@@ -190,9 +186,7 @@ def get_psf_wave_exts(hdu_list, wave_key="WAVE0"):
 def get_total_wfe_from_table(tbl):
     wfes = utils.quantity_from_table("wfe_rms", tbl, "um")
     n_surfs = tbl["n_surfaces"]
-    total_wfe = np.sum(n_surfs * wfes**2)**0.5
-
-    return total_wfe
+    return np.sum(n_surfs * wfes**2)**0.5
 
 
 def wfe2gauss(wfe, wave, width=None):
@@ -201,17 +195,14 @@ def wfe2gauss(wfe, wave, width=None):
     if width is None:
         width = int(np.ceil(8 * sigma))
         width += (width + 1) % 2
-    gauss = sigma2gauss(sigma, x_size=width, y_size=width)
-
-    return gauss
+    return sigma2gauss(sigma, x_size=width, y_size=width)
 
 
 def wfe2strehl(wfe, wave):
     wave = utils.quantify(wave, u.um)
     wfe = utils.quantify(wfe, u.um)
     x = 2 * 3.1415926526 * wfe / wave
-    strehl = np.exp(-x**2)
-    return strehl
+    return np.exp(-x**2)
 
 
 def strehl2sigma(strehl):
@@ -222,8 +213,7 @@ def strehl2sigma(strehl):
     sigmas = [19.9526, 15.3108, 11.7489, 9.01571, 6.91830, 5.30884, 4.07380,
               3.12607, 2.39883, 1.84077, 1.41253, 1.08392, 0.83176, 0.63826,
               0.48977, 0.37583, 0.28840, 0.22130, 0.16982, 0.13031, 0.1]
-    sigma = np.interp(strehl, amplitudes, sigmas)
-    return sigma
+    return np.interp(strehl, amplitudes, sigmas)
 
 
 def sigma2gauss(sigma, x_size=15, y_size=15):

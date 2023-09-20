@@ -44,13 +44,7 @@ def unify(x, unit, length=1):
         else:
             y = ([x.value] * length * x.unit).to(unit)
     else:
-        if hasattr(x, "__len__"):
-            y = x * unit
-        elif length == 1:
-            y = x * unit
-        else:
-            y = [x] * length * unit
-
+        y = x * unit if hasattr(x, "__len__") or length == 1 else [x] * length * unit
     return y
 
 
@@ -281,10 +275,7 @@ def seq(start, stop, step=1):
     npts = int(npts + feps)
     sequence = start + np.asarray(range(npts + 1)) * step
     # correct for possible overshot because of fuzz (from seq.R)
-    if step > 0:
-        return np.minimum(sequence, stop)
-    else:
-        return np.maximum(sequence, stop)
+    return np.minimum(sequence, stop) if step > 0 else np.maximum(sequence, stop)
 
 
 def add_mags(mags):
@@ -294,14 +285,12 @@ def add_mags(mags):
 
 def dist_mod_from_distance(d):
     """Use mu = 5 * np.log10(d) - 5 formula."""
-    mu = 5 * np.log10(d) - 5
-    return mu
+    return 5 * np.log10(d) - 5
 
 
 def distance_from_dist_mod(mu):
     """Use d = 10**(1 + mu / 5) formula."""
-    d = 10 ** (1 + mu / 5)
-    return d
+    return 10 ** (1 + mu / 5)
 
 
 def telescope_diffraction_limit(aperture_size, wavelength, distance=None):
@@ -355,9 +344,7 @@ def transverse_distance(angle, distance):
         proper transverse distance. Has the same Units as ``distance``
 
     """
-    trans_distance = angle * distance * u.AU.to(u.pc)
-
-    return trans_distance
+    return angle * distance * u.AU.to(u.pc)
 
 
 def angle_in_arcseconds(distance, width):
@@ -644,9 +631,7 @@ def get_meta_quantity(meta_dict, name, fallback_unit=""):
     else:
         unit = u.Unit(fallback_unit)
 
-    quant = quantify(meta_dict[name], unit)
-
-    return quant
+    return quantify(meta_dict[name], unit)
 
 
 def quantify(item, unit):
@@ -666,13 +651,14 @@ def quantify(item, unit):
     if isinstance(item, str) and item.startswith("!"):
         item = from_currsys(item)
     if isinstance(item, u.Quantity):
-        quant = item.to(u.Unit(unit))
+        return item.to(u.Unit(unit))
     else:
-        if isinstance(item, (np.ndarray, list, tuple)) and np.size(item) > 1000:
-            quant = item << u.Unit(unit)
-        else:
-            quant = item * u.Unit(unit)
-    return quant
+        return (
+            item << u.Unit(unit)
+            if isinstance(item, (np.ndarray, list, tuple))
+            and np.size(item) > 1000
+            else item * u.Unit(unit)
+        )
 
 
 def extract_type_from_unit(unit, unit_type):
@@ -748,10 +734,7 @@ def get_fits_type(filename):
 def quantity_from_table(colname, table, default_unit=""):
     col = table[colname]
     if col.unit is not None:
-        if len(col) < 1000:
-            col = col.data * col.unit
-        else:
-            col = col.data << col.unit
+        col = col.data * col.unit if len(col) < 1000 else col.data << col.unit
     else:
         colname_u = f"{colname}_unit"
         if colname_u in table.meta:
@@ -904,12 +887,11 @@ def check_keys(input_dict, required_keys, action="error", all_any="all"):
 
 def interp2(x_new, x_orig, y_orig):
     """Check and correct for decreasing x_orig values."""
-    if x_orig[0] < x_orig[-1]:
-        y_new = np.interp(x_new, x_orig, y_orig)
-    else:
-        y_new = np.interp(x_new, x_orig[::-1], y_orig[::-1])
-
-    return y_new
+    return (
+        np.interp(x_new, x_orig, y_orig)
+        if x_orig[0] < x_orig[-1]
+        else np.interp(x_new, x_orig[::-1], y_orig[::-1])
+    )
 
 
 def write_report(text, filename=None, output=None):

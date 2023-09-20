@@ -99,10 +99,9 @@ class SurfaceList(TERCurve):
         end = end + len(self.table) if end < 0 else end
         rows = np.arange(start, end) if rows is None else rows
 
-        emission = rad_utils.combine_emissions(self.table, self.surfaces, rows,
-                                               etendue, use_area)
-
-        return emission
+        return rad_utils.combine_emissions(
+            self.table, self.surfaces, rows, etendue, use_area
+        )
 
     @property
     def area(self):

@@ -89,9 +89,7 @@ def get_server_folder_contents(dir_name: str,
 
     soup = bs4.BeautifulSoup(result, features="lxml")
     hrefs = soup.find_all("a", href=True, string=re.compile(unique_str))
-    pkgs = (href.string for href in hrefs)
-
-    return pkgs
+    return (href.string for href in hrefs)
 
 
 def _get_package_name(package: str) -> str:
@@ -103,7 +101,7 @@ def _parse_raw_version(raw_version: str) -> str:
 
     Set initial package version to basically "minus infinity".
     """
-    if raw_version in ("", "zip"):
+    if raw_version in {"", "zip"}:
         return str(date(1, 1, 1))
     return raw_version.strip(".zip")
 
@@ -177,11 +175,9 @@ def get_all_latest(version_groups: _GrpVerType) -> Iterator[Tuple[str, str]]:
 
 def group_package_versions(all_packages: Iterable[Tuple[str, str]]) -> _GrpItrType:
     """Group different versions of packages by package name"""
-    version_groups = groupby_transform(sorted(all_packages),
-                                       keyfunc=first,
-                                       valuefunc=last,
-                                       reducefunc=list)
-    return version_groups
+    return groupby_transform(
+        sorted(all_packages), keyfunc=first, valuefunc=last, reducefunc=list
+    )
 
 
 def crawl_server_dirs() -> Iterator[Tuple[str, Set[str]]]:
@@ -209,10 +205,11 @@ def get_all_package_versions() -> Dict[str, List[str]]:
 
 
 def get_package_folders() -> Dict[str, str]:
-    folder_dict = {pkg: path.strip("/")
-                   for path, pkgs in dict(crawl_server_dirs()).items()
-                   for pkg in pkgs}
-    return folder_dict
+    return {
+        pkg: path.strip("/")
+        for path, pkgs in dict(crawl_server_dirs()).items()
+        for pkg in pkgs
+    }
 
 
 def get_server_folder_package_names(dir_name: str) -> Set[str]:
@@ -235,13 +232,13 @@ def get_server_folder_package_names(dir_name: str) -> Set[str]:
         Set of unique package names in `dir_name` folder.
 
     """
-    package_names = {package.split(".", maxsplit=1)[0] for package
-                     in get_server_folder_contents(dir_name)}
-
-    if not package_names:
+    if package_names := {
+        package.split(".", maxsplit=1)[0]
+        for package in get_server_folder_contents(dir_name)
+    }:
+        return package_names
+    else:
         raise ValueError(f"No packages found in directory \"{dir_name}\".")
-
-    return package_names
 
 
 def get_all_packages_on_server() -> Iterator[Tuple[str, set]]:
@@ -299,16 +296,14 @@ def list_packages(pkg_name: Optional[str] = None) -> List[str]:
     all_grouped = get_all_package_versions()
 
     if pkg_name is None:
-        # Return all packages with any stable version
-        all_stable = list(dict(get_all_stable(all_grouped)).keys())
-        return all_stable
-
-    if not pkg_name in all_grouped:
+        return list(dict(get_all_stable(all_grouped)).keys())
+    if pkg_name not in all_grouped:
         raise ValueError(f"Package name {pkg_name} not found on server.")
 
-    p_versions = [_unparse_raw_version(version, pkg_name)
-                  for version in all_grouped[pkg_name]]
-    return p_versions
+    return [
+        _unparse_raw_version(version, pkg_name)
+        for version in all_grouped[pkg_name]
+    ]
 
 
 def _get_zipname(pkg_name: str, release: str, all_versions) -> str:

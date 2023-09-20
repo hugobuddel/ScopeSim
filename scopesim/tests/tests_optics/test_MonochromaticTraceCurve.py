@@ -51,22 +51,23 @@ class TestGetHeader:
     @pytest.mark.usefixtures("basic_mtc")
     def test_header_reprojects_properly(self):
 
-        if PLOTS:
-            xs = [[-1, 0, 1], [2, 3, 4], [-3, -4, -5]]
-            ys = [[-1, -1, -1], [0, 0, 0], [1, 1, 1]]
-            for x, y, c1, c2 in zip(xs, ys, "rgb", "mck"):
-                mtc = MonochromeTraceCurve(x, y, [-1, 0, 1], 1.2, 1.4)
+        if not PLOTS:
+            return
+        xs = [[-1, 0, 1], [2, 3, 4], [-3, -4, -5]]
+        ys = [[-1, -1, -1], [0, 0, 0], [1, 1, 1]]
+        pixel_size = 0.1
+        for x, y, c1, c2 in zip(xs, ys, "rgb", "mck"):
+            mtc = MonochromeTraceCurve(x, y, [-1, 0, 1], 1.2, 1.4)
 
-                pixel_size = 0.1
-                hdr = mtc.get_header(pixel_size)
-                plt.plot(mtc.x, mtc.y, c1)
-                plt.plot(mtc.x[0], mtc.y[0], c1+"o")
+            hdr = mtc.get_header(pixel_size)
+            plt.plot(mtc.x, mtc.y, c1)
+            plt.plot(mtc.x[0], mtc.y[0], f"{c1}o")
 
-                xp = [0, hdr["NAXIS1"]]
-                yp = [0, 0]
-                wcs = WCS(hdr, key="D")
-                xw, yw = wcs.all_pix2world(xp, yp, 1)
-                plt.plot(xw, yw, c2)
-                plt.plot(hdr["CRVAL1D"], hdr["CRVAL2D"], c2+"o")
+            xp = [0, hdr["NAXIS1"]]
+            yp = [0, 0]
+            wcs = WCS(hdr, key="D")
+            xw, yw = wcs.all_pix2world(xp, yp, 1)
+            plt.plot(xw, yw, c2)
+            plt.plot(hdr["CRVAL1D"], hdr["CRVAL2D"], f"{c2}o")
 
-            plt.show()
+        plt.show()

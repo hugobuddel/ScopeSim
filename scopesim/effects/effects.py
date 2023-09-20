@@ -119,10 +119,11 @@ class Effect(DataContainer):
         padlen = 4 + len(max(self.meta, key=len))
         exclude = {"comments", "changes", "description", "history",
                    "report_table_caption", "report_plot_caption", "table"}
-        meta_str = "\n".join(f"{key:>{padlen}} : {value}"
-                             for key, value in self.meta.items()
-                             if key not in exclude)
-        return meta_str
+        return "\n".join(
+            f"{key:>{padlen}} : {value}"
+            for key, value in self.meta.items()
+            if key not in exclude
+        )
 
     def report(self, filename=None, output="rst", rst_title_chars="*+",
                **kwargs):
@@ -307,21 +308,21 @@ Meta-data
         return f"{self.__class__.__name__}: \"{self.display_name}\""
 
     def __getitem__(self, item):
-        if isinstance(item, str) and item.startswith("#"):
-            if len(item) > 1:
-                if item.endswith("!"):
-                    key = item[1:-1]
-                    if len(key) > 0:
-                        value = from_currsys(self.meta[key])
-                    else:
-                        value = from_currsys(self.meta)
-                else:
-                    value = self.meta[item[1:]]
-            else:
-                value = self.meta
-        else:
+        if not isinstance(item, str) or not item.startswith("#"):
             raise ValueError(f"__getitem__ calls must start with '#': {item}")
 
+        if len(item) > 1:
+            if item.endswith("!"):
+                key = item[1:-1]
+                value = (
+                    from_currsys(self.meta[key])
+                    if len(key) > 0
+                    else from_currsys(self.meta)
+                )
+            else:
+                value = self.meta[item[1:]]
+        else:
+            value = self.meta
         return value
 
     def _get_path(self):

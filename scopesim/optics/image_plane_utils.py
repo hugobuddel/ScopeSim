@@ -134,9 +134,7 @@ def _make_bounding_header_for_tables(tables, pixel_scale=1*u.arcsec):
         x += [np.min(x_col), np.max(x_col) + 2 * pixel_scale]
         y += [np.min(y_col), np.max(y_col) + 2 * pixel_scale]
 
-    hdr = header_from_list_of_xy(x, y, pixel_scale, s)
-
-    return hdr
+    return header_from_list_of_xy(x, y, pixel_scale, s)
 
 
 def header_from_list_of_xy(x, y, pixel_scale, wcs_suffix=""):
@@ -156,7 +154,7 @@ def header_from_list_of_xy(x, y, pixel_scale, wcs_suffix=""):
 
     """
     s = wcs_suffix
-    if wcs_suffix != "D":
+    if s != "D":
         x = np.array(x)
         x[x > 270] -= 360
         x[x <= -90] += 360
@@ -184,23 +182,23 @@ def header_from_list_of_xy(x, y, pixel_scale, wcs_suffix=""):
     hdr["NAXIS"] = 2
     hdr["NAXIS1"] = naxis1
     hdr["NAXIS2"] = naxis2
-    hdr["CTYPE1"+s] = "LINEAR" if s == "D" else "RA---TAN"
-    hdr["CTYPE2"+s] = "LINEAR" if s == "D" else "DEC--TAN"
-    hdr["CUNIT1"+s] = "mm" if s == "D" else "deg"
-    hdr["CUNIT2"+s] = "mm" if s == "D" else "deg"
-    hdr["CDELT1"+s] = pixel_scale
-    hdr["CDELT2"+s] = pixel_scale
-    hdr["CRVAL1"+s] = crval1
-    hdr["CRVAL2"+s] = crval2
-    hdr["CRPIX1"+s] = 0.
-    hdr["CRPIX2"+s] = 0.
+    hdr[f"CTYPE1{s}"] = "LINEAR" if s == "D" else "RA---TAN"
+    hdr[f"CTYPE2{s}"] = "LINEAR" if s == "D" else "DEC--TAN"
+    hdr[f"CUNIT1{s}"] = "mm" if s == "D" else "deg"
+    hdr[f"CUNIT2{s}"] = "mm" if s == "D" else "deg"
+    hdr[f"CDELT1{s}"] = pixel_scale
+    hdr[f"CDELT2{s}"] = pixel_scale
+    hdr[f"CRVAL1{s}"] = crval1
+    hdr[f"CRVAL2{s}"] = crval2
+    hdr[f"CRPIX1{s}"] = 0.
+    hdr[f"CRPIX2{s}"] = 0.
 
     xpcen, ypcen = naxis1 // 2, naxis2 // 2
     xscen, yscen = pix2val(hdr, xpcen, ypcen, s)
-    hdr["CRVAL1"+s] = float(xscen)
-    hdr["CRVAL2"+s] = float(yscen)
-    hdr["CRPIX1"+s] = xpcen
-    hdr["CRPIX2"+s] = ypcen
+    hdr[f"CRVAL1{s}"] = float(xscen)
+    hdr[f"CRVAL2{s}"] = float(yscen)
+    hdr[f"CRPIX1{s}"] = xpcen
+    hdr[f"CRPIX2{s}"] = ypcen
 
     return hdr
 
@@ -533,12 +531,16 @@ def reorient_imagehdu(imagehdu: fits.ImageHDU, wcs_suffix: str = "",
     pc_keys = ["PC1_1", "PC1_2", "PC2_1", "PC2_2"]
     if all(key+s in hdr for key in pc_keys) and imagehdu.data is not None:
         xscen, yscen = pix2val(hdr, hdr["NAXIS1"] / 2., hdr["NAXIS2"] / 2., s)
-        hdr["CRVAL1" + s] = xscen
-        hdr["CRVAL2" + s] = yscen
+        hdr[f"CRVAL1{s}"] = xscen
+        hdr[f"CRVAL2{s}"] = yscen
 
-        mat = np.array([[hdr["PC1_1" + s], hdr["PC1_2" + s], 0],
-                        [hdr["PC2_1" + s], hdr["PC2_2" + s], 0],
-                        [0,                0,                1]])
+        mat = np.array(
+            [
+                [hdr[f"PC1_1{s}"], hdr[f"PC1_2{s}"], 0],
+                [hdr[f"PC2_1{s}"], hdr[f"PC2_2{s}"], 0],
+                [0, 0, 1],
+            ]
+        )
         if imagehdu.data.ndim == 2:
             mat = mat[:2, :2]
 
@@ -631,11 +633,13 @@ def affine_map(input, matrix=None, rotation_angle: float = 0.,
         offset = np.r_[[0], offset]
         out = np.r_[input.shape[0], out]
 
-    output = ndi.affine_transform(input, np.rot90(mat, 2),
-                                  output_shape=out, offset=offset,
-                                  order=spline_order)
-
-    return output
+    return ndi.affine_transform(
+        input,
+        np.rot90(mat, 2),
+        output_shape=out,
+        offset=offset,
+        order=spline_order,
+    )
 
 
 def add_imagehdu_to_imagehdu(image_hdu: fits.ImageHDU,
@@ -677,7 +681,7 @@ def add_imagehdu_to_imagehdu(image_hdu: fits.ImageHDU,
 
     if isinstance(image_hdu.data, u.Quantity):
         image_hdu.data = image_hdu.data.value
-    pixel_scale = float(canvas_hdu.header["CDELT1"+wcs_suffix])
+    pixel_scale = float(canvas_hdu.header[f"CDELT1{wcs_suffix}"])
 
     new_hdu = rescale_imagehdu(image_hdu, pixel_scale=pixel_scale,
                                wcs_suffix=wcs_suffix,
@@ -699,8 +703,6 @@ def add_imagehdu_to_imagehdu(image_hdu: fits.ImageHDU,
     # don't. Weird.
     canvas_hdu.data = overlay_image(new_hdu.data, canvas_hdu.data,
                                     coords=(xpix0+1, ypix0+1))
-                                    #coords=(xpix0, ypix0))
-
     return canvas_hdu
 
 
@@ -721,20 +723,20 @@ def pix2val(header, x, y, wcs_suffix=""):
 
     """
     s = wcs_suffix
-    if "PC1_1"+s in header:
-        pc11 = header["PC1_1"+s]
-        pc12 = header["PC1_2"+s]
-        pc21 = header["PC2_1"+s]
-        pc22 = header["PC2_2"+s]
+    if f"PC1_1{s}" in header:
+        pc11 = header[f"PC1_1{s}"]
+        pc12 = header[f"PC1_2{s}"]
+        pc21 = header[f"PC2_1{s}"]
+        pc22 = header[f"PC2_2{s}"]
     else:
         pc11, pc12, pc21, pc22 = 1, 0, 0, 1
 
-    da = header["CDELT1"+s]
-    db = header["CDELT2"+s]
-    x0 = header["CRPIX1"+s]
-    y0 = header["CRPIX2"+s]
-    a0 = header["CRVAL1"+s]
-    b0 = header["CRVAL2"+s]
+    da = header[f"CDELT1{s}"]
+    db = header[f"CDELT2{s}"]
+    x0 = header[f"CRPIX1{s}"]
+    y0 = header[f"CRPIX2{s}"]
+    a0 = header[f"CRVAL1{s}"]
+    b0 = header[f"CRVAL2{s}"]
 
     a = a0 + da * ((x - x0) * pc11 + (y - y0) * pc12)
     b = b0 + db * ((x - x0) * pc21 + (y - y0) * pc22)
@@ -772,12 +774,12 @@ def val2pix(header, a, b, wcs_suffix=""):
     if (pc11 * pc22 + pc12 * pc21) != 1.0:
         logging.error("PC matrix det != 1.0")
 
-    da = float(header["CDELT1"+s])
-    db = float(header["CDELT2"+s])
-    x0 = float(header["CRPIX1"+s])
-    y0 = float(header["CRPIX2"+s])
-    a0 = float(header["CRVAL1"+s])
-    b0 = float(header["CRVAL2"+s])
+    da = float(header[f"CDELT1{s}"])
+    db = float(header[f"CDELT2{s}"])
+    x0 = float(header[f"CRPIX1{s}"])
+    y0 = float(header[f"CRPIX2{s}"])
+    a0 = float(header[f"CRVAL1{s}"])
+    b0 = float(header[f"CRVAL2{s}"])
 
     x = x0 + 1. / da * ((a - a0) * pc11 - (b - b0) * pc21)
     y = y0 + 1. / db * ((a - a0) * pc12 + (b - b0) * pc22)
@@ -839,10 +841,10 @@ def split_header(hdr, chunk_size, wcs_suffix=""):
     """
     # ..todo:: test that this works
     s = wcs_suffix
-    naxis1, naxis2 = hdr["NAXIS1"+s], hdr["NAXIS2"+s]
-    x0_pix, y0_pix = hdr["CRPIX1"+s], hdr["CRPIX2"+s]       # pix
-    x0_sky, y0_sky = hdr["CRVAL1"+s], hdr["CRVAL2"+s]       # deg
-    x_delt, y_delt = hdr["CDELT1"+s], hdr["CDELT2"+s]       # deg / pix
+    naxis1, naxis2 = hdr[f"NAXIS1{s}"], hdr[f"NAXIS2{s}"]
+    x0_pix, y0_pix = hdr[f"CRPIX1{s}"], hdr[f"CRPIX2{s}"]
+    x0_sky, y0_sky = hdr[f"CRVAL1{s}"], hdr[f"CRVAL2{s}"]
+    x_delt, y_delt = hdr[f"CDELT1{s}"], hdr[f"CDELT2{s}"]
 
     hdr_list = []
     for x1_pix in range(0, naxis1, chunk_size):

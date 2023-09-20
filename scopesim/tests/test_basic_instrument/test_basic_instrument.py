@@ -154,15 +154,15 @@ class TestObserveIfuMode:
             opt[effect_name].include = False
 
         opt.observe(src)
-        hdul = opt.readout()[0]
-
-        imp_im = opt.image_planes[0].data
-        det_im = hdul[1].data
-
         if PLOTS:
+            hdul = opt.readout()[0]
+
             plt.subplot(121)
+            imp_im = opt.image_planes[0].data
             plt.imshow(imp_im, norm=LogNorm())
             plt.subplot(122)
+            det_im = hdul[1].data
+
             plt.imshow(det_im, norm=LogNorm())
             plt.show()
 

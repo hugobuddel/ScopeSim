@@ -28,9 +28,7 @@ MOCK_DIR = mock_dir()
 @pytest.fixture(scope="module")
 def data_files():
     filenames = ["PSF_basic.fits", "TC_filter_Ks.dat"]
-    abs_paths = [os.path.join(MOCK_DIR, fname) for fname in filenames]
-
-    return abs_paths
+    return [os.path.join(MOCK_DIR, fname) for fname in filenames]
 
 
 @pytest.mark.usefixtures("data_files")

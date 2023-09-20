@@ -83,15 +83,14 @@ class FOVManager:
         if is_spectroscope(self.effects):
             headers = fmu.get_spectroscopy_headers(self.effects, **self.meta)
             shifts = fmu.get_3d_shifts(self.effects, **self.meta)
-            fovs = fmu.get_spectroscopy_fovs(headers, shifts, self.effects,
-                                             **fov_meta)
+            return fmu.get_spectroscopy_fovs(
+                headers, shifts, self.effects, **fov_meta
+            )
         else:
             headers = fmu.get_imaging_headers(self.effects, **self.meta)
             waveset = fmu.get_imaging_waveset(self.effects, **self.meta)
             shifts = fmu.get_3d_shifts(self.effects, **self.meta)
-            fovs = fmu.get_imaging_fovs(headers, waveset, shifts, **fov_meta)
-
-        return fovs
+            return fmu.get_imaging_fovs(headers, waveset, shifts, **fov_meta)
 
     @property
     def fovs(self):

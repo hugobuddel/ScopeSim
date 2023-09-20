@@ -47,12 +47,12 @@ class FieldOfView(FieldOfViewBase):
                      }
         self.meta.update(kwargs)
 
-        if not any([utils.has_needed_keywords(header, s) for s in ["", "S"]]):
-            raise ValueError("header must contain a valid sky-plane WCS: {}"
-                             "".format(dict(header)))
+        if not any(utils.has_needed_keywords(header, s) for s in ["", "S"]):
+            raise ValueError(f"header must contain a valid sky-plane WCS: {dict(header)}")
         if not utils.has_needed_keywords(header, "D"):
-            raise ValueError("header must contain a valid image-plane WCS: {}"
-                             "".format(dict(header)))
+            raise ValueError(
+                f"header must contain a valid image-plane WCS: {dict(header)}"
+            )
 
         if isinstance(header, PoorMansHeader):
             self.hdu = fits.ImageHDU()
@@ -79,8 +79,7 @@ class FieldOfView(FieldOfViewBase):
         """ ..assumption: Bandpass has been applied"""
 
         if not isinstance(src, SourceBase):
-            raise ValueError("source must be a Source object: {}"
-                             "".format(type(src)))
+            raise ValueError(f"source must be a Source object: {type(src)}")
 
         area = self.meta["area"]
 
@@ -231,14 +230,9 @@ class FieldOfView(FieldOfViewBase):
         return self._wavelength
 
     def __repr__(self):
-        msg = "FOV id: {}, with dimensions ({}, {})\n" \
-              "".format(self.meta["id"], self.header["NAXIS1"],
-                        self.header["NAXIS2"])
-        msg += "Sky centre: ({}, {})\n" \
-               "".format(self.header["CRVAL1"], self.header["CRVAL2"])
-        msg += "Image centre: ({}, {})\n" \
-               "".format(self.header["CRVAL1D"], self.header["CRVAL2D"])
-        msg += "Wavelength range: ({}, {})um\n" \
-               "".format(self.meta["wave_min"], self.meta["wave_max"])
+        msg = f'FOV id: {self.meta["id"]}, with dimensions ({self.header["NAXIS1"]}, {self.header["NAXIS2"]})\n'
+        msg += f'Sky centre: ({self.header["CRVAL1"]}, {self.header["CRVAL2"]})\n'
+        msg += f'Image centre: ({self.header["CRVAL1D"]}, {self.header["CRVAL2D"]})\n'
+        msg += f'Wavelength range: ({self.meta["wave_min"]}, {self.meta["wave_max"]})um\n'
 
         return msg

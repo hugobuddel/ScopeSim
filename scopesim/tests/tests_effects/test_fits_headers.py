@@ -26,9 +26,7 @@ def comb_hdul():
     pri = fits.PrimaryHDU(header=fits.Header({"EXTNAME": "PriHDU"}))
     im = fits.ImageHDU(header=fits.Header({"EXTNAME": "ImHDU"}))
     tbl = fits.BinTableHDU(header=fits.Header({"EXTNAME": "BinTblHDU"}))
-    hdul = fits.HDUList([pri, im, tbl])
-
-    return hdul
+    return fits.HDUList([pri, im, tbl])
 
 
 # taken from the example yaml in docstring of ExtraFitsKeywords
@@ -204,7 +202,7 @@ class TestFlattenDict:
     def test_resolves_bang_strings(self):
         dic = {"SIM": {"random_seed": "!SIM.random.seed"}}
         flat_dict = fh.flatten_dict(dic, resolve=True)
-        assert flat_dict["SIM random_seed"] == None
+        assert flat_dict["SIM random_seed"] is None
 
     @pytest.mark.usefixtures("simplecado_opt")
     def test_resolves_hash_strings(self, simplecado_opt):
@@ -284,7 +282,7 @@ class TestSimulationConfigFitsKeywordsApplyTo:
         pri_hdr = hdul[0].header
 
         assert pri_hdr["SIM CONFIG DET ndit"] == 1
-        assert pri_hdr["SIM CONFIG SIM random seed"] == None
+        assert pri_hdr["SIM CONFIG SIM random seed"] is None
 
     def test_bang_string_untouched_for_resolve_false(self, simplecado_opt,
                                                      comb_hdul):
@@ -333,4 +331,4 @@ class TestAllFitsKeywordEffects:
         assert hdr["SIM EFF0 class"] == "DetectorList"
         assert hdr["SIM SRC0 class"] == "Table"
         assert hdr["SIM SRC0 photometric_system"] == "ab"
-        assert hdr["SIM CONFIG SIM random seed"] == None
+        assert hdr["SIM CONFIG SIM random seed"] is None

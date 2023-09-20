@@ -29,18 +29,21 @@ def micado_surf_list():
 
 
 def surf_list_kwargs(n=11):
-    kwargs = {"array_dict": {"name": ["M{}".format(i) for i in range(n)],
-                             "area": [1.0] * n,
-                             "angle": [0] * n,
-                             "temperature": [0] * n,
-                             "action": ["reflection"] * n,
-                             "filename": ["TER_mirror_gold.dat"] * n},
-              "outer_unit": "m",
-              "inner_unit": "m",
-              "angle_unit": "deg",
-              "temperature_unit": "deg_C",
-              "etendue": (1 * u.m * u.arcsec) ** 2}
-    return kwargs
+    return {
+        "array_dict": {
+            "name": [f"M{i}" for i in range(n)],
+            "area": [1.0] * n,
+            "angle": [0] * n,
+            "temperature": [0] * n,
+            "action": ["reflection"] * n,
+            "filename": ["TER_mirror_gold.dat"] * n,
+        },
+        "outer_unit": "m",
+        "inner_unit": "m",
+        "angle_unit": "deg",
+        "temperature_unit": "deg_C",
+        "etendue": (1 * u.m * u.arcsec) ** 2,
+    }
 
 
 class TestInit:

@@ -16,9 +16,7 @@ PLOTS = False
 
 
 def basic_image_plane():
-    implane = ImagePlane(_implane_header())
-
-    return implane
+    return ImagePlane(_implane_header())
 
 
 def basic_kernel(n=128):

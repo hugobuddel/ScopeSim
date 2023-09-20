@@ -92,6 +92,4 @@ def chop_nod_image(img, chop_offsets, nod_offsets=None):
     im_ba = np.roll(im_aa, nod_offsets, (1, 0))
     im_bb = np.roll(im_ba, chop_offsets, (1, 0))
 
-    im_comb = (im_aa - im_ab) - (im_ba - im_bb)
-
-    return im_comb
+    return (im_aa - im_ab) - (im_ba - im_bb)

@@ -27,9 +27,9 @@ for NEW_PATH in [YAMLS_PATH, FILES_PATH]:
 
 @pytest.fixture(scope="function")
 def psf_object():
-    psf = AnisocadoConstPSF(filename="test_AnisoCADO_rms_map.fits",
-                            strehl=0.5, wavelength=2.15)
-    return psf
+    return AnisocadoConstPSF(
+        filename="test_AnisoCADO_rms_map.fits", strehl=0.5, wavelength=2.15
+    )
 
 
 @pytest.fixture(scope="function")

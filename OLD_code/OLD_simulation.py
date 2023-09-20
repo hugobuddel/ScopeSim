@@ -218,6 +218,7 @@ def _get_limiting_mags(fpas, grid, exptimes, filter_names=None,
         exptimes = [exptimes]*len(fpas)
 
     mags_all = []
+    dw = 5
     for fpa, filt, AB_corr in zip(fpas, filter_names, AB_corrs):
 
         lim_mags = []
@@ -233,7 +234,6 @@ def _get_limiting_mags(fpas, grid, exptimes, filter_names=None,
 
             sigs, nss, snrs, bgs = [], [], [], []
             for n in range(len(x)):
-                dw = 5
                 w = max(dw + 5, int((1. - n/len(x)) * 20))
 
                 ps = im[y[n]-w:y[n]+w, x[n]-w:x[n]+w]
@@ -309,7 +309,7 @@ def plot_exptime_vs_limiting_mag(exptimes, limiting_mags,
     if len(np.shape(limiting_mags)) == 1:
         limiting_mags = [limiting_mags]
     if filter_names is None:
-        filter_names = ["Filter "+str(i) for i in range(np.shape(limiting_mags)[0])]
+        filter_names = [f"Filter {str(i)}" for i in range(np.shape(limiting_mags)[0])]
 
     elif isinstance(filter_names, str):
         filter_names = [filter_names]*np.shape(limiting_mags)[0]
@@ -494,7 +494,7 @@ def snr_curve(exptimes, mmin=20, mmax=30, filter_name="Ks",
     default_cmds = UserCommands()
     default_cmds["ATMO_EC"] = "none"
     default_cmds["FPA_USE_NOISE"] = "no"
-    if filter_name in paranal_bg.keys():
+    if filter_name in paranal_bg:
         default_cmds["ATMO_BG_MAGNITUDE"] = paranal_bg[filter_name]
 
     if cmds is not None:
@@ -687,9 +687,7 @@ def mags_from_snr_array(snr_val, snr_array, mags):
 
     """
 
-    mags_fit = [np.interp(snr_val, s[::-1], mags[::-1]) for s in snr_array]
-
-    return mags_fit
+    return [np.interp(snr_val, s[::-1], mags[::-1]) for s in snr_array]
 
 
 def snr(exptimes, mags, filter_name="Ks", cmds=None, **kwargs):
@@ -764,7 +762,7 @@ def snr(exptimes, mags, filter_name="Ks", cmds=None, **kwargs):
     elif isinstance(mags, (tuple, list, np.ndarray)):
         mmin, mmax = np.min(mags), np.max(mags)
     else:
-        raise ValueError("Couldn't use type(mags): "+str(type(mags)))
+        raise ValueError(f"Couldn't use type(mags): {str(type(mags))}")
 
     snr_array, mags_array = snr_curve(exptimes, mmin=mmin, mmax=mmax,
                                       filter_name=filter_name, cmds=cmds, **kwargs)

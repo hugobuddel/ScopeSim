@@ -34,60 +34,50 @@ for NEW_PATH in [YAMLS_PATH, FILES_PATH]:
 
 class TestPsfEffects:
     def test_VibrationPsf_plot(self):
-        psf = psfs.Vibration(fwhm=0.03, pixel_scale=0.005)
-        fov = fovobj._centre_micado_fov()
         if PLOTS:
+            psf = psfs.Vibration(fwhm=0.03, pixel_scale=0.005)
+            fov = fovobj._centre_micado_fov()
             psf.plot(fov)
             plt.show()
-
-        assert True
 
     def test_NonCommonPathAberrationPsf_plot(self):
-        psf = psfs.NonCommonPathAberration(pixel_scale=0.05)
-        fov = fovobj._centre_micado_fov()
-
         if PLOTS:
+            psf = psfs.NonCommonPathAberration(pixel_scale=0.05)
+            fov = fovobj._centre_micado_fov()
+
             psf.plot(fov)
             plt.show()
-
-        assert True
 
     def test_SeeingPSF_plot(self):
-        psf = psfs.SeeingPSF(fwhm=0.8)
-        fov = fovobj._centre_micado_fov()
         if PLOTS:
+            psf = psfs.SeeingPSF(fwhm=0.8)
+            fov = fovobj._centre_micado_fov()
             psf.plot(fov)
             plt.show()
 
-        assert True
-
     def test_GaussianDiffractionPSF_plot(self):
-        psf = psfs.GaussianDiffractionPSF(diameter=32)
-        fov = fovobj._centre_micado_fov()
         if PLOTS:
+            psf = psfs.GaussianDiffractionPSF(diameter=32)
+            fov = fovobj._centre_micado_fov()
             psf.plot(fov)
             plt.show()
 
     def test_AnisocadoPsf_plot(self):
-        psf = psfs.AnisocadoConstPSF(filename="test_AnisoCADO_rms_map.fits",
-                                     strehl=0.5, wavelength=2.15)
-        fov = fovobj._centre_micado_fov()
-
         if PLOTS:
+            psf = psfs.AnisocadoConstPSF(filename="test_AnisoCADO_rms_map.fits",
+                                         strehl=0.5, wavelength=2.15)
+            fov = fovobj._centre_micado_fov()
+
             psf.plot(fov)
             plt.show()
-
-        assert True
 
     def test_FieldConstantPSF_plot(self):
-        psf = psfs.FieldConstantPSF(filename="test_ConstPSF.fits")
-        fov = fovobj._centre_micado_fov()
-
         if PLOTS:
+            psf = psfs.FieldConstantPSF(filename="test_ConstPSF.fits")
+            fov = fovobj._centre_micado_fov()
+
             psf.plot(fov)
             plt.show()
-
-        assert True
 
 # *** Not working very well for now  ***
 #    def test_FieldVaryingPSF_plot(self):
@@ -174,9 +164,9 @@ class TestDetectorEffectsPlots:
             plt.show()
 
     def test_LinearityCurve_plot(self):
-        eff = electronic.LinearityCurve(ndit=1, filename="test_linearity.dat")  # raise error for ints!
-
         if PLOTS:
+            eff = electronic.LinearityCurve(ndit=1, filename="test_linearity.dat")  # raise error for ints!
+
             eff.plot()
             plt.xlim(0, 1e2)
             plt.show()
@@ -188,9 +178,9 @@ class TestDetectorEffectsPlots:
 
         implane = ImagePlane(_image_hdu_square().header)
         implane.hdu.data = np.ones(implane.hdu.data.shape)
-        eff = electronic.ReferencePixelBorder(all=5, top=15)
-
         if PLOTS:
+            eff = electronic.ReferencePixelBorder(all=5, top=15)
+
             eff.plot(implane)
             plt.show()
 

@@ -298,7 +298,7 @@ class PoorMansHxRGReadoutNoise(Effect):
 
             ron_frame = make_ron_frame(**ron_kwargs)
             stacked_ron_frame = np.zeros_like(ron_frame)
-            for i in range(self.meta["ndit"]):
+            for _ in range(self.meta["ndit"]):
                 dx = np.random.randint(0, ron_frame.shape[1])
                 dy = np.random.randint(0, ron_frame.shape[0])
                 stacked_ron_frame += np.roll(ron_frame, (dy, dx), axis=(0, 1))
@@ -376,9 +376,7 @@ class ShotNoise(Effect):
             # takes only 60% as long as the poisson distribution
             data = det._hdu.data
 
-            # Check if there are negative values in the data
-            negvals = np.sum(data < 0)
-            if negvals:
+            if negvals := np.sum(data < 0):
                 logging.warning(f"Effect ShotNoise: {negvals} negative pixels")
                 data[data < 0] = 0
 
@@ -519,9 +517,7 @@ class ReferencePixelBorder(Effect):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.meta["z_order"] = [780]
-        val = 0
-        if "all" in kwargs:
-            val = int(kwargs["all"])
+        val = int(kwargs["all"]) if "all" in kwargs else 0
         widths = {key: val for key in ["top", "bottom", "left", "right"]}
         self.meta.update(widths)
         self.meta.update(kwargs)
@@ -603,9 +599,7 @@ def make_ron_frame(image_shape, noise_std, n_channels, channel_fraction,
     channel = np.repeat(np.random.normal(loc=0, scale=channel_std,
                                          size=n_channels), w_chan + 1, axis=0)
 
-    ron_frame = (pixel + line).T + channel[:shape[0]]
-
-    return ron_frame
+    return (pixel + line).T + channel[:shape[0]]
 
 
 def pseudo_random_field(scale=1, size=(1024, 1024)):

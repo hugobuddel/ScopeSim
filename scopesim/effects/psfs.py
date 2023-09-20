@@ -64,7 +64,6 @@ class PSF(Effect):
                 waveset_edges = 0.5 * (waveset[:-1] + waveset[1:])
                 obj.split("wave", utils.quantify(waveset_edges, u.um).value)
 
-        # 2. During observe: convolution
         elif isinstance(obj, self.convolution_classes):
             if ((hasattr(obj, "fields") and len(obj.fields) > 0) or
                 (obj.hdu is not None)):
@@ -109,9 +108,9 @@ class PSF(Effect):
                 d_x = new_image.shape[-1] - image.shape[-1]
                 d_y = new_image.shape[-2] - image.shape[-2]
                 for wcsid in ["", "D"]:
-                    if "CRPIX1" + wcsid in obj.hdu.header:
-                        obj.hdu.header["CRPIX1" + wcsid] += d_x / 2
-                        obj.hdu.header["CRPIX2" + wcsid] += d_y / 2
+                    if f"CRPIX1{wcsid}" in obj.hdu.header:
+                        obj.hdu.header[f"CRPIX1{wcsid}"] += d_x / 2
+                        obj.hdu.header[f"CRPIX2{wcsid}"] += d_y / 2
 
         return obj
 
@@ -498,20 +497,14 @@ class AnisocadoConstPSF(SemiAnalyticalPSF):
 
     @property
     def strehl_ratio(self):
-        strehl = None
-        if self._psf_object is not None:
-            strehl = self._psf_object.strehl_ratio
-
-        return strehl
+        return self._psf_object.strehl_ratio if self._psf_object is not None else None
 
     @property
     def nmRms(self):
         strehl = utils.from_currsys(self.meta["strehl"])
         wave = self.wavelength
         hdu = self._file[0]
-        nm_rms = pu.nmrms_from_strehl_and_wavelength(strehl, wave, hdu)
-
-        return nm_rms
+        return pu.nmrms_from_strehl_and_wavelength(strehl, wave, hdu)
 
     def plot(self, obj=None, **kwargs):
         from matplotlib.colors import LogNorm
@@ -608,22 +601,17 @@ class FieldConstantPSF(DiscretePSF):
         idx = pu.nearest_index(fov.wavelength, self._waveset)
         ext = self.kernel_indexes[idx]
         if ext != self.current_layer_id:
+            self.current_layer_id = ext
             if fov.hdu.header["NAXIS"] == 3:
-                self.current_layer_id = ext
                 self.make_psf_cube(fov)
             else:
                 self.kernel = self._file[ext].data
-                self.current_layer_id = ext
                 hdr = self._file[ext].header
 
                 self.kernel /= np.sum(self.kernel)
 
                 # compare kernel and fov pixel scales, rescale if needed
-                if "CUNIT1" in hdr:
-                    unit_factor = u.Unit(hdr["CUNIT1"].lower()).to(u.deg)
-                else:
-                    unit_factor = 1
-
+                unit_factor = u.Unit(hdr["CUNIT1"].lower()).to(u.deg) if "CUNIT1" in hdr else 1
                 kernel_pixel_scale = hdr["CDELT1"] * unit_factor
                 fov_pixel_scale = fov.header["CDELT1"]
 

@@ -32,15 +32,14 @@ class Shift3D(Effect):
         return None
 
     def get_table(self, **kwargs):
-        if self.table is None:
-            names = ["wavelength", "dx", "dy"]
-            waves = from_currsys(["!SIM.spectral.wave_" + key
-                                  for key in ("min", "mid", "max")])
-            tbl = Table(names=names, data=[waves, [0] * 3, [0] * 3])
-        else:
-            tbl = self.table
+        if self.table is not None:
+            return self.table
 
-        return tbl
+        names = ["wavelength", "dx", "dy"]
+        waves = from_currsys(
+            [f"!SIM.spectral.wave_{key}" for key in ("min", "mid", "max")]
+        )
+        return Table(names=names, data=[waves, [0] * 3, [0] * 3])
 
     def plot(self):
         fig, axes = figure_factory()
@@ -128,7 +127,7 @@ class AtmosphericDispersion(Shift3D):
         Success! Returns the same values as:
         http://gtc-phase2.gtc.iac.es/science/astroweb/atmosRefraction.php
         """
-        if len(kwargs) > 0:
+        if kwargs:
             self.meta.update(kwargs)
 
         airmass = from_currsys(self.meta["airmass"])
@@ -146,9 +145,7 @@ class AtmosphericDispersion(Shift3D):
         dy = shifts * np.cos(np.deg2rad(params["pupil_angle"]))
 
         names = ["wavelength", "dx", "dy"]
-        tbl = Table(names=names, data=[waves, dx, dy])
-
-        return tbl
+        return Table(names=names, data=[waves, dx, dy])
 
 
 class AtmosphericDispersionCorrection(Shift3D):
@@ -296,16 +293,7 @@ def atmospheric_refraction(lam, z0=60, temp=0, rel_hum=60, pres=750,
     R = k * g * (1 - b) * np.tan(np.deg2rad(z0)) \
         - k * g * (b - g/2.) * np.tan(np.deg2rad(z0))**3
 
-    # the refraction is the side of a triangle, although the triangle
-    # side makes an arc across the sky.
-    # We want the angle that this triangle side is subtending
-    # Using the small angle approximation (which is in radians),
-    # we can get the angle of refraction
-
-    ang = np.rad2deg(R) * 3600
-
-    # return value is in arcsec
-    return ang
+    return np.rad2deg(R) * 3600
 
 
 def get_pixel_border_waves_from_atmo_disp(**kwargs):
