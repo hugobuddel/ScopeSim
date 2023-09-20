@@ -41,8 +41,7 @@ PLOTS = False
 def input_files():
     filenames = ["test_image.fits", "test_table.fits", "test_table.tbl",
                  "test_spectrum_Flam.dat", "test_spectrum_photlam.dat"]
-    filenames = [os.path.join(MOCK_DIR, fname) for fname in filenames]
-    return filenames
+    return [os.path.join(MOCK_DIR, fname) for fname in filenames]
 
 
 @pytest.fixture(scope="module")
@@ -50,9 +49,7 @@ def input_hdulist():
     filenames = ["test_image.fits"]
     filenames = [os.path.join(MOCK_DIR, fname) for fname in filenames]
     print(filenames)
-    hdu_handle = fits.open(filenames[0])
-
-    return hdu_handle
+    return fits.open(filenames[0])
 
 
 @pytest.fixture(scope="module")
@@ -98,9 +95,7 @@ def table_source():
                       [5, -10, 5,  0] * u.arcsec,
                       [2,  0,  1,  0],
                       [1,  1,  1,  2]])
-    tbl_source = Source(table=tbl, spectra=specs)
-
-    return tbl_source
+    return Source(table=tbl, spectra=specs)
 
 
 @pytest.fixture(scope="function")
@@ -126,9 +121,7 @@ def image_source():
 
     im_hdu = fits.ImageHDU(data=im, header=im_wcs.to_header())
     im_hdu.header["SPEC_REF"] = 0
-    im_source = Source(image_hdu=im_hdu, spectra=specs)
-
-    return im_source
+    return Source(image_hdu=im_hdu, spectra=specs)
 
 
 @pytest.mark.usefixtures("input_files", "input_hdulist", "input_tables",

@@ -6,8 +6,8 @@ def profile_hawki_integration():
     PKGS = {"Paranal": "locations/Paranal.zip",
             "VLT": "telescopes/VLT.zip",
             "HAWKI": "instruments/HAWKI.zip"}
-    for pkg_name in PKGS:
-        scopesim.download_package(PKGS[pkg_name])
+    for value in PKGS.values():
+        scopesim.download_package(value)
 
     cmd = scopesim.UserCommands(use_instrument="HAWKI",
                                 properties={"!OBS.dit": 360,

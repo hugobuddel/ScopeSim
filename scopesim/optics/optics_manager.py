@@ -191,13 +191,11 @@ class OpticsManager:
 
     @property
     def image_plane_effects(self):
-        effects = self.get_z_order_effects(700)
-        return effects
+        return self.get_z_order_effects(700)
 
     @property
     def fov_effects(self):
-        effects = self.get_z_order_effects(600)
-        return effects
+        return self.get_z_order_effects(600)
 
     @property
     def source_effects(self):
@@ -249,9 +247,7 @@ class OpticsManager:
     def area(self):
         surf_lists = self.get_all(efs.SurfaceList)
         areas = [0] + [surf_list.area.value for surf_list in surf_lists]
-        _area = np.max(areas) * u.m**2
-
-        return _area
+        return np.max(areas) * u.m**2
 
     def list_effects(self):
         # unfortunately this does not work because of the astropy internal
@@ -275,9 +271,7 @@ class OpticsManager:
         colnames = ["element", "name", "class", "included"]     #, "z_orders"
         data = [elements, names, classes, included]             #, z_orders
         data = from_currsys(data)
-        tbl = Table(names=colnames, data=data, copy=False)
-
-        return tbl
+        return Table(names=colnames, data=data, copy=False)
 
     def report(self, filename=None, output="rst", rst_title_chars="_^#*+",
                **kwargs):
@@ -330,10 +324,11 @@ Summary of Effects in Optical Elements:
                         effs = [effs]
                     obj += effs
 
-        if isinstance(obj, list) and len(obj) == 1:
-            obj = obj[0]
-        elif isinstance(obj, list) and len(obj) == 0:
-            raise ValueError(f"Cannot find object: {item}")
+        if isinstance(obj, list):
+            if len(obj) == 1:
+                obj = obj[0]
+            elif len(obj) == 0:
+                raise ValueError(f"Cannot find object: {item}")
 
         return obj
 

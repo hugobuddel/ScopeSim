@@ -36,9 +36,7 @@ def _basic_circular_fvpsf():
     hdr.update(dic)
     pri_hdr = fits.PrimaryHDU(header=hdr)
 
-    hdu_list = fits.HDUList([pri_hdr, strehl_hdu, psf_hdu])
-
-    return hdu_list
+    return fits.HDUList([pri_hdr, strehl_hdu, psf_hdu])
 
 # psf = _basic_circular_fvpsf()
 # psf.writeto("st_circular_fvpsf.fits")

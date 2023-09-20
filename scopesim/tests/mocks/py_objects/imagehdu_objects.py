@@ -21,9 +21,7 @@ def _image_hdu_square(wcs_suffix=""):
     # the_wcs.wcs.pc = np.array([[ca, sa], [-sa, ca]])
 
     image = np.ones((width, width))
-    hdu = fits.ImageHDU(data=image, header=the_wcs.to_header())
-
-    return hdu
+    return fits.ImageHDU(data=image, header=the_wcs.to_header())
 
 
 def _image_hdu_rect(wcs_suffix=""):
@@ -44,6 +42,4 @@ def _image_hdu_rect(wcs_suffix=""):
     the_wcs.wcs.pc = [[ca, sa], [-sa, ca]]
 
     image = np.random.random(size=(height, width))
-    hdu = fits.ImageHDU(data=image, header=the_wcs.to_header())
-
-    return hdu
+    return fits.ImageHDU(data=image, header=the_wcs.to_header())

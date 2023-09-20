@@ -41,7 +41,7 @@ class TestApertures:
         apl = ApertureList(filename="test_aperture_list.dat",
                            no_mask=False, pixel_scale=0.01)
         apertures = apl.apertures
-        assert all([isinstance(am, ApertureMask) for am in apertures])
+        assert all(isinstance(am, ApertureMask) for am in apertures)
 
         if PLOTS:
             for ii in range(len(apertures)):
@@ -55,7 +55,7 @@ class TestFovGrid:
         apl = ApertureList(filename="test_aperture_list.dat",
                            no_mask=False, pixel_scale=0.01)
         hdrs = apl.fov_grid()
-        assert all([isinstance(hdr, fits.Header) for hdr in hdrs])
+        assert all(isinstance(hdr, fits.Header) for hdr in hdrs)
 
         if PLOTS:
             from scopesim.optics.image_plane import ImagePlane

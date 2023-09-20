@@ -104,24 +104,26 @@ class OpticalElement:
                 if isinstance(z, (list, tuple)):
                     if any(zmin <= zi <= zmax for zi in z):
                         effects.append(eff)
-                else:
-                    if zmin <= z <= zmax:
-                        effects.append(eff)
+                elif zmin <= z <= zmax:
+                    effects.append(eff)
 
         return effects
 
     @property
     def surfaces_list(self):
-        _ter_list = [effect for effect in self.effects
-                     if isinstance(effect, (efs.SurfaceList, efs.FilterWheel,
-                                            efs.TERCurve))]
-        return _ter_list
+        return [
+            effect
+            for effect in self.effects
+            if isinstance(effect, (efs.SurfaceList, efs.FilterWheel, efs.TERCurve))
+        ]
 
     @property
     def masks_list(self):
-        _mask_list = [effect for effect in self.effects if
-                      isinstance(effect, (efs.ApertureList, efs.ApertureMask))]
-        return _mask_list
+        return [
+            effect
+            for effect in self.effects
+            if isinstance(effect, (efs.ApertureList, efs.ApertureMask))
+        ]
 
     def list_effects(self):
         elements = [self.meta["name"]] * len(self.effects)
@@ -132,9 +134,7 @@ class OpticalElement:
 
         colnames = ["element", "name", "class", "included", "z_orders"]
         data = [elements, names, classes, included, z_orders]
-        tbl = Table(names=colnames, data=data, copy=False)
-
-        return tbl
+        return Table(names=colnames, data=data, copy=False)
 
     def __add__(self, other):
         self.add_effect(other)
@@ -223,15 +223,14 @@ class OpticalElement:
 
     @property
     def properties_str(self):
-        prop_str = ""
         max_key_len = max(len(key) for key in self.properties.keys())
         padlen = max_key_len + 4
-        for key in self.properties:
-            if key not in {"comments", "changes", "description", "history",
-                           "report"}:
-                prop_str += f"{key:>{padlen}} : {self.properties[key]}\n"
-
-        return prop_str
+        return "".join(
+            f"{key:>{padlen}} : {self.properties[key]}\n"
+            for key in self.properties
+            if key
+            not in {"comments", "changes", "description", "history", "report"}
+        )
 
     def report(self, filename=None, output="rst", rst_title_chars="^#*+",
                **kwargs):

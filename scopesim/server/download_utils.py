@@ -23,18 +23,15 @@ HTTP_RETRY_CODES = [403, 404, 429, 500, 501, 502, 503]
 def _make_tqdm_kwargs(desc: str = ""):
     width, _ = get_terminal_size((50, 20))
     bar_width = max(int(.8 * width) - 30 - len(desc), 10)
-    tqdm_kwargs = {
+    return {
         "bar_format": f"{{l_bar}}{{bar:{bar_width}}}{{r_bar}}{{bar:-{bar_width}b}}",
         "colour": "green",
-        "desc": desc
-        }
-    return tqdm_kwargs
+        "desc": desc,
+    }
 
 
 def _create_session(cached: bool = False, cache_name: str = ""):
-    if cached:
-        return CachedSession(cache_name)
-    return requests.Session()
+    return CachedSession(cache_name) if cached else requests.Session()
 
 
 def initiate_download(pkg_url: str,

@@ -115,7 +115,7 @@ pygments_style = None
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
-if not os.environ.get("READTHEDOCS") == "True":
+if os.environ.get("READTHEDOCS") != "True":
     import sphinx_rtd_theme
     html_theme = "sphinx_rtd_theme"
     extensions += ["sphinx_rtd_theme"]

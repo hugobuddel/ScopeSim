@@ -217,9 +217,7 @@ class SpectralTraceList(Effect):
     def image_plane_header(self):
         x, y = self.footprint
         pixel_scale = from_currsys(self.meta["pixel_scale"])
-        hdr = header_from_list_of_xy(x, y, pixel_scale, "D")
-
-        return hdr
+        return header_from_list_of_xy(x, y, pixel_scale, "D")
 
     def rectify_traces(self, hdulist, xi_min=None, xi_max=None, interps=None,
                        **kwargs):
@@ -355,9 +353,7 @@ class SpectralTraceList(Effect):
         return f"{self.__class__.__name__}(**{self.meta!r})"
 
     def __str__(self) -> str:
-        msg = (f"SpectralTraceList: \"{self.meta.get('name')}\" : "
-               f"{len(self.spectral_traces)} traces")
-        return msg
+        return f"""SpectralTraceList: \"{self.meta.get('name')}\" : {len(self.spectral_traces)} traces"""
 
     def __getitem__(self, item):
         return self.spectral_traces[item]
@@ -454,8 +450,9 @@ class SpectralTraceListWheel(Effect):
 
     @property
     def current_trace_list(self):
-        trace_list_eff = None
         trace_list_name = from_currsys(self.meta["current_trace_list"])
-        if trace_list_name is not None:
-            trace_list_eff = self.trace_lists[trace_list_name]
-        return trace_list_eff
+        return (
+            self.trace_lists[trace_list_name]
+            if trace_list_name is not None
+            else None
+        )

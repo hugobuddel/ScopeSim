@@ -154,7 +154,7 @@ class MetisLMSSpectralTraceList(SpectralTraceList):
 
         spec_traces = {}
         for sli in np.arange(self.meta["nslice"]):
-            slicename = "Slice " + str(sli + 1)
+            slicename = f"Slice {str(sli + 1)}"
             spec_traces[slicename] = MetisLMSSpectralTrace(
                 self._file,
                 spslice=sli, params=self.meta)
@@ -189,7 +189,7 @@ class MetisLMSSpectralTrace(SpectralTrace):
         super().__init__(polyhdu, **params)
 
         self._file = hdulist
-        self.meta["description"] = "Slice " + str(spslice + 1)
+        self.meta["description"] = f"Slice {str(spslice + 1)}"
         self.meta["trace_id"] = f"Slice {spslice + 1}"
         self.meta.update(params)
         # Provisional:
@@ -212,13 +212,14 @@ class MetisLMSSpectralTrace(SpectralTrace):
         y_max = aperture["top"]
 
         layout = ioascii.read(find_file("!DET.layout.file_name"))
-        det_lims = {}
         xhw = layout["pixel_size"] * layout["x_size"] / 2
         yhw = layout["pixel_size"] * layout["y_size"] / 2
-        det_lims["xd_min"] = min(layout["x_cen"] - xhw)
-        det_lims["xd_max"] = max(layout["x_cen"] + xhw)
-        det_lims["yd_min"] = min(layout["y_cen"] - yhw)
-        det_lims["yd_max"] = max(layout["y_cen"] + yhw)
+        det_lims = {
+            "xd_min": min(layout["x_cen"] - xhw),
+            "xd_max": max(layout["x_cen"] + xhw),
+            "yd_min": min(layout["y_cen"] - yhw),
+            "yd_max": max(layout["y_cen"] + yhw),
+        }
         wave_min, wave_max = self.get_waverange(det_lims)
 
         # ..todo: just a hack - xi and x are the same except xi is a quantity
@@ -357,15 +358,10 @@ class MetisLMSSpectralTrace(SpectralTrace):
         return fp_x * self.meta["plate_scale"]
 
     def __repr__(self):
-        msg = (f"{self.__class__.__name__}({self._file!r}, "
-               f"{self.meta['slice']!r}, {self.meta!r})")
-        return msg
+        return f"{self.__class__.__name__}({self._file!r}, {self.meta['slice']!r}, {self.meta!r})"
 
     def __str__(self):
-        msg = (f"<MetisLMSSpectralTrace> \"{self.meta['description']}\" : "
-               f"{from_currsys(self.meta['wavelen'])} um : "
-               f"Order {self.meta['order']} : Angle {self.meta['angle']}")
-        return msg
+        return f"""<MetisLMSSpectralTrace> \"{self.meta['description']}\" : {from_currsys(self.meta['wavelen'])} um : Order {self.meta['order']} : Angle {self.meta['angle']}"""
 
 
 def echelle_setting(wavelength, grat_spacing, wcal_def):

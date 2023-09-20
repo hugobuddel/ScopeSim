@@ -42,9 +42,4 @@ def load_example_optical_train(**kwargs):
         rc.__config__["!SIM.file.local_packages_path"] = inst_pkgs
 
     cmd = UserCommands(use_instrument="basic_instrument", **kwargs)
-    opt = OpticalTrain(cmd)
-
-    # rc.__config__["!SIM.file.local_packages_path"] = old_local_path
-    # rc.__search_path__ = old_search_path
-
-    return opt
+    return OpticalTrain(cmd)

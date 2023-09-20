@@ -55,17 +55,17 @@ class TestGetServerFolderContents:
     @pytest.mark.webtest
     def test_downloads_locations(self):
         pkgs = list(db.get_server_folder_contents("locations"))
-        assert len(pkgs) > 0
+        assert pkgs
 
     @pytest.mark.webtest
     def test_downloads_telescopes(self):
         pkgs = list(db.get_server_folder_contents("telescopes"))
-        assert len(pkgs) > 0
+        assert pkgs
 
     @pytest.mark.webtest
     def test_downloads_instruments(self):
         pkgs = list(db.get_server_folder_contents("instruments"))
-        assert len(pkgs) > 0
+        assert pkgs
 
     @pytest.mark.webtest
     def test_finds_armazones(self):
@@ -91,8 +91,9 @@ class TestGetServerElements:
     def test_returns_folders_if_server_exists(self):
         url = rc.__config__["!SIM.file.server_base_url"]
         pkgs = dbex.get_server_elements(url)
-        assert all([loc in pkgs for loc in
-                    ["locations/", "telescopes/", "instruments/"]])
+        assert all(
+            loc in pkgs for loc in ["locations/", "telescopes/", "instruments/"]
+        )
 
     @pytest.mark.webtest
     def test_returns_files_if_zips_exist(self):

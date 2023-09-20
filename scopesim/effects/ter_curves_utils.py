@@ -150,7 +150,7 @@ def download_svo_filter_list(observatory, instrument, short_names=False,
     # The SVO is only accessible over http, not over https.
     # noinspection HttpUrlsUsage
     base_url = "http://svo2.cab.inta-csic.es/theory/fps3/fps.php?"
-    url = base_url + f"Facility={observatory}&Instrument={instrument}"
+    url = f"{base_url}Facility={observatory}&Instrument={instrument}"
     fn = f"{observatory}/{instrument}"
     path = find_file(
         fn,
@@ -242,10 +242,7 @@ def zero_mag_flux(filter_name, photometric_system, return_filter=False):
     obs = Observation(spec, filt)
     flux = obs.effstim(flux_unit=PHOTLAM)
 
-    if return_filter:
-        return flux, filt
-    else:
-        return flux
+    return (flux, filt) if return_filter else flux
 
 
 def scale_spectrum(spectrum, filter_name, amplitude):

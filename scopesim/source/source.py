@@ -179,7 +179,7 @@ class Source(SourceBase):
         elif image_hdu is not None and flux is not None:
             self._from_imagehdu_and_flux(image_hdu, flux)
 
-        elif image_hdu is not None and flux is None and spectra is None:
+        elif image_hdu is not None:
             if image_hdu.header.get("BUNIT") is not None:
                 self._from_imagehdu_only(image_hdu)
             else:
@@ -189,7 +189,7 @@ class Source(SourceBase):
                 raise ValueError(msg)
 
         elif x is not None and y is not None and \
-                ref is not None and spectra is not None:
+                    ref is not None and spectra is not None:
             self._from_arrays(x, y, ref, weight, spectra)
 
     def _from_file(self, filename, spectra, flux):
@@ -258,10 +258,10 @@ class Source(SourceBase):
 
         for i in [1, 2]:
             # Do not test for CUNIT or CDELT so that it throws an exception
-            unit = u.Unit(image_hdu.header["CUNIT"+str(i)].lower())
-            val = float(image_hdu.header["CDELT"+str(i)])
-            image_hdu.header["CUNIT"+str(i)] = "DEG"
-            image_hdu.header["CDELT"+str(i)] = val * unit.to(u.deg)
+            unit = u.Unit(image_hdu.header[f"CUNIT{str(i)}"].lower())
+            val = float(image_hdu.header[f"CDELT{str(i)}"])
+            image_hdu.header[f"CUNIT{str(i)}"] = "DEG"
+            image_hdu.header[f"CDELT{str(i)}"] = val * unit.to(u.deg)
 
         self.fields.append(image_hdu)
 
@@ -364,22 +364,25 @@ class Source(SourceBase):
     @property
     def table_fields(self):
         """List of fields that are defined through tables"""
-        fields = [field for field in self.fields if isinstance(field, Table)]
-        return fields
+        return [field for field in self.fields if isinstance(field, Table)]
 
     @property
     def image_fields(self):
         """List of fields that are defined through two-dimensional images"""
-        fields = [field for field in self.fields if
-                  isinstance(field, fits.ImageHDU) and field.header["NAXIS"] == 2]
-        return fields
+        return [
+            field
+            for field in self.fields
+            if isinstance(field, fits.ImageHDU) and field.header["NAXIS"] == 2
+        ]
 
     @property
     def cube_fields(self):
         """List of fields that are defined through three-dimensional cubes"""
-        fields = [field for field in self.fields if
-                  isinstance(field, fits.ImageHDU) and field.header["NAXIS"] == 3]
-        return fields
+        return [
+            field
+            for field in self.fields
+            if isinstance(field, fits.ImageHDU) and field.header["NAXIS"] == 3
+        ]
 
     # ..todo: rewrite this method
     def image_in_range(self, wave_min, wave_max, pixel_scale=1*u.arcsec,
@@ -453,9 +456,9 @@ class Source(SourceBase):
             indexes = range(len(self.spectra))
 
         spectra = [self.spectra[ii] for ii in indexes]
-        counts = photons_in_range(spectra, wave_min, wave_max, area=area,
-                                  bandpass=self.bandpass)
-        return counts
+        return photons_in_range(
+            spectra, wave_min, wave_max, area=area, bandpass=self.bandpass
+        )
 
     def fluxes(self, wave_min, wave_max, **kwargs):
         return self.photons_in_range(wave_min, wave_max, **kwargs)
@@ -536,7 +539,7 @@ class Source(SourceBase):
         colours = "rgbcymk" * (len(self.fields) // 7 + 1)
         for col, field in zip(colours, self.fields):
             if isinstance(field, Table):
-                axes.plot(field["x"], field["y"], col+".")
+                axes.plot(field["x"], field["y"], f"{col}.")
             elif isinstance(field, (fits.ImageHDU, fits.PrimaryHDU)):
                 xpts, ypts = imp_utils.calc_footprint(field.header)
                 # * 3600, because ImageHDUs are always in CUNIT=DEG
@@ -570,22 +573,21 @@ class Source(SourceBase):
         if len(self.fields) == 0:
             assert self._meta_dicts == [{}]
             self._meta_dicts = []
-        if isinstance(source_to_add, Source):
-            for field in new_source.fields:
-                if isinstance(field, Table):
-                    field["ref"] += len(self.spectra)
-                    self.fields.append(field)
-
-                elif isinstance(field, (fits.ImageHDU, fits.PrimaryHDU)):
-                    if ("SPEC_REF" in field.header and
-                        isinstance(field.header["SPEC_REF"], int)):
-                        field.header["SPEC_REF"] += len(self.spectra)
-                    self.fields.append(field)
-                self.spectra += new_source.spectra
-
-                self._meta_dicts += source_to_add._meta_dicts
-        else:
+        if not isinstance(source_to_add, Source):
             raise ValueError(f"Cannot add {type(new_source)} object to Source object")
+        for field in new_source.fields:
+            if isinstance(field, Table):
+                field["ref"] += len(self.spectra)
+                self.fields.append(field)
+
+            elif isinstance(field, (fits.ImageHDU, fits.PrimaryHDU)):
+                if ("SPEC_REF" in field.header and
+                    isinstance(field.header["SPEC_REF"], int)):
+                    field.header["SPEC_REF"] += len(self.spectra)
+                self.fields.append(field)
+            self.spectra += new_source.spectra
+
+            self._meta_dicts += source_to_add._meta_dicts
 
     def __add__(self, new_source):
         self_copy = self.make_copy()

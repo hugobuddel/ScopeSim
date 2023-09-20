@@ -82,9 +82,9 @@ class SpectralTraceListOld(Effect):
 
         disp, waverange = spt_utils.get_max_dispersion(tbls, **params)
         um_per_pix = self.meta["pixel_scale"] / self.meta["plate_scale"] / disp
-        waveset = spt_utils.pixel_wavelength_edges(um_per_pix, waverange,
-                                                   wave_min, wave_max)
-        return waveset
+        return spt_utils.pixel_wavelength_edges(
+            um_per_pix, waverange, wave_min, wave_max
+        )
 
     def get_fov_headers(self, sky_header):
         self.meta = from_currsys(self.meta)
@@ -131,9 +131,6 @@ class SpectralTraceListOld(Effect):
         return headers_list
 
     def apply_to(self, fov):
-        if isinstance(fov, self.apply_to_classes):
-            pass
-
         return fov
 
     def plot(self, wave_min=None, wave_max=None, **kwargs):

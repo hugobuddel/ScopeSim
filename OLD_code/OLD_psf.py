@@ -333,12 +333,8 @@ class DeltaPSF(PSF):
 
     def __init__(self, **kwargs):
 
-        if "position" in kwargs.keys():
-            self.position = kwargs["position"]
-        else:
-            self.position = (0, 0)
-
-        if "size" in kwargs.keys():
+        self.position = kwargs.get("position", (0, 0))
+        if "size" in kwargs:
             size = round(kwargs["size"] / 2) * 2 + 5
         else:
             size = int(np.max(np.abs(self.position))) * 2 + 5
@@ -346,15 +342,11 @@ class DeltaPSF(PSF):
         if not np.max(self.position) < size:
             raise ValueError("positions are outside array borders:")
 
-        if "pix_res" in kwargs.keys():
-            pix_res = kwargs["pix_res"]
-        else:
-            pix_res = 0.004
-
+        pix_res = kwargs.get("pix_res", 0.004)
         super(DeltaPSF, self).__init__(size, pix_res)
         self.info["Type"] = "Delta"
         self.info["description"] = "Delta PSF, centred at (%.1f, %.1f)" \
-                                    % self.position
+                                        % self.position
         self.info["x_shift"] = self.position[0]
         self.info["y_shift"] = self.position[1]
 
@@ -368,7 +360,7 @@ class DeltaPSF(PSF):
 
         arr = np.zeros((self.size, self.size))
         arr[int(self.y) : int(self.y) + 2, int(self.x) : int(self.x) + 2] = \
-            np.array([[x1 * y1, x2 * y1], [x1 * y2, x2 * y2]])
+                np.array([[x1 * y1, x2 * y1], [x1 * y2, x2 * y2]])
         self.set_array(arr)
 
 
@@ -398,21 +390,11 @@ class AiryPSF(PSF):
         # Ensure that PSF size is at least 8 times fwhm
         size = int(np.max((round(8 * fwhm / pix_res) * 2 + 1, size)))
 
-        # if size > 511:
-            # size = 511
-            # print("FWHM [arcsec]:", fwhm, "- pixel res [arcsec]:", pix_res)
-            # print("Array size:", size, "x", size, "- PSF FoV:", size * pix_res)
-            # logging.warning("PSF dimensions too large - cropped to 512x512")
-
         # Check for 'mode' keyword argument
-        if "mode" in kwargs.keys():
+        if "mode" in kwargs:
             mode = kwargs["mode"]
         else:
-            if size > 100:
-                mode = "linear_interp"
-            else:
-                mode = 'oversample'
-
+            mode = "linear_interp" if size > 100 else 'oversample'
         # Ensure that obscuration is between 0 and 1
         if obscuration < 0 or obscuration > 1:
             print("Warning: Obscuration must be between 0 and 1. Using 0.")
@@ -421,8 +403,8 @@ class AiryPSF(PSF):
         super(AiryPSF, self).__init__(size, pix_res)
         self.info["Type"] = "Airy"
         self.info['description'] \
-            = "Airy PSF, FWHM = %.1f mas, obscuration = %.2f" \
-            % (fwhm * 1E3, obscuration)
+                = "Airy PSF, FWHM = %.1f mas, obscuration = %.2f" \
+                % (fwhm * 1E3, obscuration)
         self.info["fwhm"] = fwhm * 1E3           # milliarcseconds
         self.info["obscuration"] = obscuration
         self.info["pixel scale"] = pix_res
@@ -468,34 +450,20 @@ class GaussianPSF(PSF):
 
         self.fwhm = fwhm
 
-        if "pix_res" in kwargs.keys():
-            pix_res = kwargs["pix_res"]
-        else:
-            pix_res = 0.004
-
-        if "size" in kwargs.keys():
-            size = round(kwargs["size"] / 2) * 2 + 1
-        else:
-            size = 1
-
-        if "undersized" in kwargs.keys() and kwargs["undersized"]:
-            pass
-        else:
+        pix_res = kwargs.get("pix_res", 0.004)
+        size = round(kwargs["size"] / 2) * 2 + 1 if "size" in kwargs else 1
+        if "undersized" not in kwargs.keys() or not kwargs["undersized"]:
             size = int(np.max((round(5 * self.fwhm / pix_res) * 2 + 1, size)))
 
         # Check for 'mode' keyword argument
-        if "mode" in kwargs.keys():
+        if "mode" in kwargs:
             mode = kwargs["mode"]
         else:
-            if size > 100:
-                mode = "linear_interp"
-            else:
-                mode = 'oversample'
-
+            mode = "linear_interp" if size > 100 else 'oversample'
         super(GaussianPSF, self).__init__(size, pix_res)
         self.info["Type"] = "Gaussian"
         self.info['description'] = "Gaussian PSF, FWHM = %.1f mas" \
-                                    % (self.fwhm * 1E3)
+                                        % (self.fwhm * 1E3)
         self.info["fwhm"] = self.fwhm * 1E3
 
         n = (self.fwhm / 2.35) / self.pix_res
@@ -526,33 +494,22 @@ class MoffatPSF(PSF):
 
         self.fwhm = fwhm
 
-        if "pix_res" in kwargs.keys():
-            pix_res = kwargs["pix_res"]
-        else:
-            pix_res = 0.004
-
-        if "size" in kwargs.keys():
-            size = round(kwargs["size"] / 2) * 2 + 1
-        else:
-            size = 1
+        pix_res = kwargs.get("pix_res", 0.004)
+        size = round(kwargs["size"] / 2) * 2 + 1 if "size" in kwargs else 1
         size = int(np.max((round(4 * self.fwhm / pix_res) * 2 + 1, size)))
 
         # Check for 'mode' keyword argument
-        if "mode" in kwargs.keys():
+        if "mode" in kwargs:
             mode = kwargs["mode"]
         else:
-            if size > 100:
-                mode = "linear_interp"
-            else:
-                mode = 'oversample'
-
+            mode = "linear_interp" if size > 100 else 'oversample'
         super(MoffatPSF, self).__init__(size, pix_res)
 
         beta = 4.765 ### Trujillo et al. 2001
         alpha = self.fwhm/(2 * np.sqrt(2**(1/beta) - 1))
         self.info["Type"] = "Moffat"
         self.info['description'] = "Moffat PSF, FWHM = %.1f, alpha = %.1f"\
-                                       % (self.fwhm * 1E3, alpha)
+                                           % (self.fwhm * 1E3, alpha)
         self.info["fwhm"] = self.fwhm * 1E3
 
         self.set_array(Moffat2DKernel(alpha, beta, x_size=self.size,
@@ -580,12 +537,12 @@ class CombinedPSF(PSF):
             raise ValueError("psf_list requires more than 1 PSF object")
 
         pix_res_list = [psf.pix_res for psf in psf_list]
-        if not all(res == pix_res_list[0] for res in pix_res_list):
+        if any(res != pix_res_list[0] for res in pix_res_list):
             raise ValueError("Not all PSFs have the same pixel resolution")
 
         pix_res = pix_res_list[0]
 
-        if "size" in kwargs.keys():
+        if "size" in kwargs:
             size = int(kwargs["size"] // 2) * 2 + 1
         else:
             size_list = [psf.size for psf in psf_list]
@@ -593,7 +550,7 @@ class CombinedPSF(PSF):
 
         ## Compensate for the shift in centre due to a DeltaPSF
         shifts = np.asarray([(0, 0)] + [psf.position for psf in psf_list \
-                                        if psf.info["Type"] == "Delta"])
+                                            if psf.info["Type"] == "Delta"])
         size += 2 * np.max(shifts)
 
         arr_tmp = np.zeros((size, size))
@@ -606,8 +563,7 @@ class CombinedPSF(PSF):
 
         super(CombinedPSF, self).__init__(size, pix_res)
         self.info["Type"] = "Combined"
-        self.info['description'] = "Combined PSF from " + str(len(psf_list)) \
-                                                                + "PSF py_objects"
+        self.info['description'] = f"Combined PSF from {len(psf_list)}PSF py_objects"
         self.set_array(arr_tmp)
 
 
@@ -629,11 +585,7 @@ class UserPSF(PSF):
 
     def __init__(self, filename, **kwargs):
 
-        if "fits_ext" in kwargs.keys():
-            fits_ext = kwargs["fits_ext"]
-        else:
-            fits_ext = 0
-
+        fits_ext = kwargs.get("fits_ext", 0)
         self.filename = filename
         self.fits_ext = fits_ext
 
@@ -641,7 +593,7 @@ class UserPSF(PSF):
         data = fits.getdata(self.filename, ext=self.fits_ext)
         size = header["NAXIS1"]
 
-        if "pix_res" in kwargs.keys():
+        if "pix_res" in kwargs:
             pix_res = kwargs["pix_res"]
         elif "CDELT1" in header.keys():
             pix_res = header["CDELT1"]
@@ -661,11 +613,11 @@ class UserPSF(PSF):
 
         super(UserPSF, self).__init__(size, pix_res)
         self.info["Type"] = "User"
-        self.info['description'] = "PSF from FITS file: " + self.filename
+        self.info['description'] = f"PSF from FITS file: {self.filename}"
 
         self.set_array(data)
 
-        if "size" in kwargs.keys():
+        if "size" in kwargs:
             self.resize(kwargs["size"])
 
 
@@ -848,10 +800,7 @@ class PSFCube(object):
         return self.info['description']
 
     def __getitem__(self, i):
-        if len(self.psf_slices) > 1:
-            return self.psf_slices[i]
-        else:
-            return self.psf_slices[0]
+        return self.psf_slices[i] if len(self.psf_slices) > 1 else self.psf_slices[0]
 
     def __len__(self):
         return len(self.psf_slices)
@@ -860,11 +809,7 @@ class PSFCube(object):
     def __mul__(self, x):
         newpsf = deepcopy(self)
 
-        if not hasattr(x, "__len__"):
-            y = [x] * len(self.psf_slices)
-        else:
-            y = x
-
+        y = [x] * len(self.psf_slices) if not hasattr(x, "__len__") else x
         if len(self.psf_slices) != len(y):
             print(len(self.psf_slices), len(y))
             raise ValueError("len(arguments) must equal len(PSFs)")
@@ -878,11 +823,7 @@ class PSFCube(object):
     def __add__(self, x):
         newpsf = deepcopy(self)
 
-        if not hasattr(x, "__len__"):
-            y = [x] * len(self.psf_slices)
-        else:
-            y = x
-
+        y = [x] * len(self.psf_slices) if not hasattr(x, "__len__") else x
         if len(self.psf_slices) != len(y):
             print(len(self.psf_slices), len(y))
             raise ValueError("len(arguments) must equal len(PSFs)")
@@ -895,11 +836,7 @@ class PSFCube(object):
     def __sub__(self, x):
         newpsf = deepcopy(self)
 
-        if not hasattr(x, "__len__"):
-            y = [x] * len(self.psf_slices)
-        else:
-            y = x
-
+        y = [x] * len(self.psf_slices) if not hasattr(x, "__len__") else x
         if len(self.psf_slices) != len(y):
             print(len(self.psf_slices), len(y))
             raise ValueError("len(arguments) must equal len(PSFs)")
@@ -972,20 +909,12 @@ class AiryPSFCube(PSFCube):
     def __init__(self, lam_bin_centers, fwhm=None, **kwargs):
         super(AiryPSFCube, self).__init__(lam_bin_centers)
 
-        if "diameter" in kwargs.keys():
-            self.diameter = kwargs["diameter"]
-        else:
-            self.diameter = 39.3
-
-        if "obscuration" in kwargs.keys():
-            self.obscuration = kwargs["obscuration"]
-        else:
-            self.obscuration = 11.1/39.3
-
+        self.diameter = kwargs.get("diameter", 39.3)
+        self.obscuration = kwargs.get("obscuration", 11.1/39.3)
         if fwhm is None:
             # lam in um, diameter in m, 206265 is 1 rad in arcsec
             self.fwhm = [206265 * 1.22 * lam * 1E-6 / self.diameter \
-                                                    for lam in lam_bin_centers]
+                                                        for lam in lam_bin_centers]
         elif not hasattr(fwhm, "__len__"):
             self.fwhm = [fwhm] * len(self)
         else:
@@ -1018,15 +947,11 @@ class GaussianPSFCube(PSFCube):
     def __init__(self, lam_bin_centers, fwhm=None, **kwargs):
         super(GaussianPSFCube, self).__init__(lam_bin_centers)
 
-        if "diameter" in kwargs.keys():
-            self.diameter = kwargs["diameter"]
-        else:
-            self.diameter = 39.3
-
+        self.diameter = kwargs.get("diameter", 39.3)
         if fwhm is None:
             # lam in um, diameter in m, 206265 is 1 rad in arcsec
             self.fwhm = [206265 * 1.22 * lam * 1E-6 / self.diameter \
-                                                    for lam in lam_bin_centers]
+                                                        for lam in lam_bin_centers]
         elif not hasattr(fwhm, "__len__"):
             self.fwhm = [fwhm] * len(self)
 
@@ -1056,11 +981,7 @@ class MoffatPSFCube(PSFCube):
     def __init__(self, lam_bin_centers, fwhm=None, **kwargs):
         super(MoffatPSFCube, self).__init__(lam_bin_centers)
 
-        if "diameter" in kwargs.keys():
-            self.diameter = kwargs["diameter"]
-        else:
-            self.diameter = 39.3
-
+        self.diameter = kwargs.get("diameter", 39.3)
         if fwhm is None:
             # lam in um, diameter in m, 206265 is 1 rad in arcsec
             rad2arcsec = 3600 * 180. / np.pi
@@ -1096,7 +1017,7 @@ class CombinedPSFCube(PSFCube):
 
         ## Check that the wavelengths are equal
         lam_list = [cube.lam_bin_centers for cube in psf_list]
-        if not all([all(lam == lam_list[0]) for lam in lam_list]):
+        if not all(all(lam == lam_list[0]) for lam in lam_list):
             raise ValueError("Wavelength arrays of psf cubes are not equal")
         lam_bin_centers = lam_list[0]
 
@@ -1141,8 +1062,6 @@ class UserPSFCube(PSFCube):
         if not hasattr(lam_bin_centers, "__len__"):
             lam_bin_centers = [lam_bin_centers]
 
-        psf_slices = []
-
         # pull out the wavelengths in the PSF FITS files
         psf_lam_cen = []
 
@@ -1174,6 +1093,7 @@ class UserPSFCube(PSFCube):
         i_slices = utils.nearest(psf_lam_cen, lam_bin_centers)
         i_psf_lam_cen = [psf_lam_cen[i] for i in np.unique(i_slices)]
 
+        psf_slices = []
         # import only the relevant PSFs
         for i in np.unique(i_slices):
 
@@ -1187,8 +1107,7 @@ class UserPSFCube(PSFCube):
             elif 'PIXSCALE' in hdr.keys():
                 pix_res = hdr['PIXSCALE']
             else:
-                raise KeyError("Could not get pixel scale from " +
-                               filename)
+                raise KeyError(f"Could not get pixel scale from {filename}")
 
             if pix_res > 1:
                 logging.warning("CDELT > 1. Assuming the scale to be [mas]")
@@ -1197,11 +1116,7 @@ class UserPSFCube(PSFCube):
             psf = PSF(size=hdr["NAXIS1"], pix_res=pix_res)
             psf.set_array(hdulist[i].data)
 
-            if "PSF_TYPE" in hdr.keys():
-                psf.info["Type"] = hdr["PSF_TYPE"]
-            else:
-                psf.info["Type"] = "Unknown"
-
+            psf.info["Type"] = hdr["PSF_TYPE"] if "PSF_TYPE" in hdr.keys() else "Unknown"
             if "DESCRIPT" in hdr.keys():
                 psf.info["description"] = hdr["DESCRIPT"]
             else:
@@ -1219,7 +1134,7 @@ class UserPSFCube(PSFCube):
         self.size = [psf.size for psf in self.psf_slices]
 
         if isinstance(filename, str):
-            self.info['description'] = "User PSF cube input from " + filename
+            self.info['description'] = f"User PSF cube input from {filename}"
         else:
             self.info['description'] = "User PSF cube input from memory"
         self.info["Type"] = psf_slices[0].info["Type"]+"Cube"
@@ -1295,15 +1210,15 @@ class ADC_PSFCube(DeltaPSFCube):
         ## Rotate by the paralytic angle
         x = -pixel_shift * np.sin(np.deg2rad(para_angle)) * (1. - effectiveness)
         y = -pixel_shift * np.cos(np.deg2rad(para_angle)) * (1. - effectiveness)
-        positions = [(xi, yi) for xi, yi in zip(x, y)]
+        positions = list(zip(x, y))
 
         super(ADC_PSFCube, self).__init__(lam_bin_centers,
                                           positions=positions,
                                           pix_res=pix_res)
         self.info["Type"] = "ADC_psf"
         self.info['description'] = "ADC PSF cube for ADC effectiveness:" + \
-                                    str(params["INST_ADC_EFFICIENCY"]) + \
-                                    ", z0:" + str(params["ATMO_AIRMASS"])
+                                        str(params["INST_ADC_EFFICIENCY"]) + \
+                                        ", z0:" + str(params["ATMO_AIRMASS"])
 
 
 # The following two classes implement a kernel for the PSF of a centrally
@@ -1452,14 +1367,14 @@ class AiryDiskDiff2D(Fittable2DModel):
     # and __copy__?  If it has anything to do with the use of the j_1 function
     # that should be reworked.
     def __deepcopy__(self, memo):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
+        return self.__class__(
+            self.amplitude.value, self.x_0.value, self.y_0.value, self.radius.value
+        )
 
     def __copy__(self):
-        new_model = self.__class__(self.amplitude.value, self.x_0.value,
-                                   self.y_0.value, self.radius.value)
-        return new_model
+        return self.__class__(
+            self.amplitude.value, self.x_0.value, self.y_0.value, self.radius.value
+        )
 
     @classmethod
     def evaluate(cls, x, y, amplitude, x_0, y_0, radius, eps):
@@ -1708,9 +1623,8 @@ def poppy_ao_psf(strehl, mode="wide", plan="A", size=1024, filename=None,
 
     if filename is None:
         return hdu_list
-    else:
-        print("Writing to", filename)
-        hdu_list.writeto(filename, clobber=True)
+    print("Writing to", filename)
+    hdu_list.writeto(filename, clobber=True)
 
 
 def seeing_psf(fwhm=0.8, psf_type="moffat", size=1024, pix_res=0.004,
@@ -1747,7 +1661,7 @@ def seeing_psf(fwhm=0.8, psf_type="moffat", size=1024, pix_res=0.004,
     """
 
     if fwhm > 5:
-        logging.warning("FWHM is rather large: [arcsec]"+str(fwhm))
+        logging.warning(f"FWHM is rather large: [arcsec]{str(fwhm)}")
     fwhm_pix = fwhm/pix_res
 
     if "moff" in psf_type.lower():
@@ -1778,9 +1692,8 @@ def seeing_psf(fwhm=0.8, psf_type="moffat", size=1024, pix_res=0.004,
 
     if filename is None:
         return hdu_list
-    else:
-        print("Writing to", filename)
-        hdu_list.writeto(filename, clobber=True)
+    print("Writing to", filename)
+    hdu_list.writeto(filename, clobber=True)
 
 
 def poppy_eelt_psf(plan="A", wavelength=2.2, mode="wide", size=1024,
@@ -1892,8 +1805,9 @@ def poppy_eelt_psf(plan="A", wavelength=2.2, mode="wide", size=1024,
         cold_out = poppy.CircularAperture(radius=params["pupil_outer_radius"])
         opticslist += [cold_in, cold_out]
 
-    eelt = poppy.CompoundAnalyticOptic(opticslist=opticslist,
-                                       name='E-ELT Plan '+plan)
+    eelt = poppy.CompoundAnalyticOptic(
+        opticslist=opticslist, name=f'E-ELT Plan {plan}'
+    )
 
     osys = poppy.OpticalSystem(oversample=params["oversample"], pupil_diameter=50)
     osys.add_pupil(eelt)
@@ -1920,9 +1834,8 @@ def poppy_eelt_psf(plan="A", wavelength=2.2, mode="wide", size=1024,
 
     if filename is None:
         return hdu_list
-    else:
-        print("Writing to", filename)
-        hdu_list.writeto(filename, clobber=True)
+    print("Writing to", filename)
+    hdu_list.writeto(filename, clobber=True)
 
 
 
@@ -1995,7 +1908,4 @@ def get_eelt_segments(plan="A", missing=None, return_missing_segs=False,
             segs.pop(x)
             segs = np.array(segs)
 
-    if return_missing_segs:
-        return segs, missing
-    else:
-        return segs
+    return (segs, missing) if return_missing_segs else segs

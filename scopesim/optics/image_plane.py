@@ -108,15 +108,14 @@ class ImagePlane(ImagePlaneBase):
         if isinstance(hdus_or_tables, (list, tuple)):
             for hdu_or_table in hdus_or_tables:
                 self.add(hdu_or_table, sub_pixel, spline_order, wcs_suffix)
-        else:
-            if isinstance(hdus_or_tables, Table):
-                self.hdu.header["COMMENT"] = "Adding files from table"
-                self.hdu = add_table_to_imagehdu(hdus_or_tables, self.hdu,
-                                                 sub_pixel, wcs_suffix)
-            elif isinstance(hdus_or_tables, fits.ImageHDU):
-                self.hdu.header["COMMENT"] = "Adding files from table"
-                self.hdu = add_imagehdu_to_imagehdu(hdus_or_tables, self.hdu,
-                                                    spline_order, wcs_suffix)
+        elif isinstance(hdus_or_tables, Table):
+            self.hdu.header["COMMENT"] = "Adding files from table"
+            self.hdu = add_table_to_imagehdu(hdus_or_tables, self.hdu,
+                                             sub_pixel, wcs_suffix)
+        elif isinstance(hdus_or_tables, fits.ImageHDU):
+            self.hdu.header["COMMENT"] = "Adding files from table"
+            self.hdu = add_imagehdu_to_imagehdu(hdus_or_tables, self.hdu,
+                                                spline_order, wcs_suffix)
 
     @property
     def header(self):

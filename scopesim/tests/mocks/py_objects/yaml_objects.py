@@ -114,17 +114,17 @@ effects :
 
 def _yaml_min_viable_scope():
     with open(os.path.join(YAMLS_PATH, "min_viable_sys.yaml")) as f:
-        dicts = [dic for dic in yaml.full_load_all(f)]
+        dicts = list(yaml.full_load_all(f))
     return dicts
 
 
 def _usr_cmds_min_viable_scope():
     with open(os.path.join(FILES_PATH, "CMD_mvs_cmds.yaml")) as f:
-        yaml_dicts = [dic for dic in yaml.full_load_all(f)]
+        yaml_dicts = list(yaml.full_load_all(f))
     return yaml_dicts
 
 
 def _yaml_unity_system():
     with open(os.path.join(YAMLS_PATH, "unity_sys.yaml")) as f:
-        dicts = [dic for dic in yaml.full_load_all(f)]
+        dicts = list(yaml.full_load_all(f))
     return dicts

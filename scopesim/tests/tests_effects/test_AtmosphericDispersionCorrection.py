@@ -22,18 +22,19 @@ def atmo_params():
     - 1.5um : -0.49 arcsec
     - 2.5um : -0.53 arcsec
     """
-    _atmo_params = {"airmass": 1.14,
-                    "temperature": 7,
-                    "humidity": 0.5,
-                    "pressure": 0.755,
-                    "latitude": -26,
-                    "altitude": 2400,
-                    "pupil_angle": 0,
-                    "pixel_scale": 1,
-                    "wave_min": 0.5,
-                    "wave_mid": 0.5,
-                    "wave_max": 2.5}
-    return _atmo_params
+    return {
+        "airmass": 1.14,
+        "temperature": 7,
+        "humidity": 0.5,
+        "pressure": 0.755,
+        "latitude": -26,
+        "altitude": 2400,
+        "pupil_angle": 0,
+        "pixel_scale": 1,
+        "wave_min": 0.5,
+        "wave_mid": 0.5,
+        "wave_max": 2.5,
+    }
 
 
 @pytest.mark.usefixtures("atmo_params")

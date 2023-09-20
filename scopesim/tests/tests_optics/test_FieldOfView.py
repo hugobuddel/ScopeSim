@@ -18,16 +18,14 @@ def _fov_190_210_um():
     """ A FOV compatible with 11 slices of so._cube_source()"""
     hdr = ho._fov_header()  # 20x20" @ 0.2" --> [-10, 10]"
     wav = [1.9, 2.1] * u.um
-    fov = FieldOfView(hdr, wav, area=1 * u.m ** 2)
-    return fov
+    return FieldOfView(hdr, wav, area=1 * u.m ** 2)
 
 
 def _fov_197_202_um():
     """ A FOV compatible with 3 slices of so._cube_source()"""
     hdr = ho._fov_header()  # 20x20" @ 0.2" --> [-10, 10]"
     wav = [1.97000000001, 2.02] * u.um  # Needs [1.98, 2.00, 2.02] µm --> 3 slices
-    fov = FieldOfView(hdr, wav, area=1*u.m**2)
-    return fov
+    return FieldOfView(hdr, wav, area=1*u.m**2)
 
 
 class TestInit:

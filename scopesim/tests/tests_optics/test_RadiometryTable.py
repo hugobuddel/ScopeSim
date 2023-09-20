@@ -156,7 +156,7 @@ class TestCombineEmissions:
                                         transmission=0.5*np.ones(n),
                                         area=2*u.m**2,
                                         angle=0*u.deg)
-        dic = {"surf" + str(i + 1): surf for i in range(3)}
+        dic = {f"surf{str(i + 1)}": surf for i in range(3)}
         tbl = ioascii.read(""" name action
                 surf1 reflection
                 surf2 transmission
@@ -188,7 +188,7 @@ class TestCombineThroughputs:
         n = 10
         surf = opt_surf.SpectralSurface(wavelength=np.linspace(1, 2, n)*u.um,
                                         transmission=np.ones(n))
-        dic = {"surf"+str(i+1): surf for i in range(3)}
+        dic = {f"surf{str(i + 1)}": surf for i in range(3)}
         tbl = ioascii.read(""" name action
         surf1 reflection
         surf2 transmission
@@ -200,7 +200,7 @@ class TestCombineThroughputs:
         n = 10
         surf = opt_surf.SpectralSurface(wavelength=np.linspace(1, 2, n) * u.um,
                                         transmission=np.ones(n))
-        dic = {"surf" + str(i + 1): surf for i in range(3)}
+        dic = {f"surf{str(i + 1)}": surf for i in range(3)}
         tbl = Table()
         combi = rad_utils.combine_throughputs(tbl, dic, [0, 1, 2])
         assert combi is None

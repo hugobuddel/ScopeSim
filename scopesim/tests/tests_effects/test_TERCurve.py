@@ -51,8 +51,8 @@ class TestTERCurveApplyTo:
 
 class TestTERCurvePlot:
     def test_plots_only_transmission(self):
-        filt = eo._filter_surface(wave_min=0.8, wave_max=2.5)
         if PLOTS:
+            filt = eo._filter_surface(wave_min=0.8, wave_max=2.5)
             filt.plot(which="ter")
             plt.show()
 

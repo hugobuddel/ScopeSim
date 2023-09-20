@@ -46,9 +46,7 @@ def input_table():
     x = [-10, -10, 0, 10, 10] * u.arcsec
     y = [-10, 10, 0, -10, 10] * u.arcsec
     f = [1, 3, 1, 1, 5]
-    tbl = Table(names=["x", "y", "flux"], data=[x, y, f])
-
-    return tbl
+    return Table(names=["x", "y", "flux"], data=[x, y, f])
 
 
 @pytest.fixture(scope="function")
@@ -56,9 +54,7 @@ def input_table_mm():
     x = [-10, -10, 0, 10, 10] * u.mm
     y = [-10, 10, 0, -10, 10] * u.mm
     f = [1, 3, 1, 1, 5]
-    tbl = Table(names=["x_mm", "y_mm", "flux"], data=[x, y, f])
-
-    return tbl
+    return Table(names=["x_mm", "y_mm", "flux"], data=[x, y, f])
 
 
 @pytest.mark.usefixtures("image_hdu_square", "image_hdu_rect",
@@ -855,7 +851,7 @@ class TestSubPixelFractions:
                                                             yy_exp, ff_exp):
         xx, yy, ff = imp_utils.sub_pixel_fractions(x, y)
         for aa, bb in [[xx, xx_exp], [yy, yy_exp], [ff, ff_exp]]:
-            assert all([a == approx(b) for a, b in zip(aa, bb)])
+            assert all(a == approx(b) for a, b in zip(aa, bb))
 
 
 @pytest.mark.usefixtures("image_hdu_square", "image_hdu_rect")

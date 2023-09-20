@@ -33,13 +33,11 @@ def get_local_packages(path):
     warn("Function Depreciated --> please use scopesim.download_package-s-()",
          DeprecationWarning, stacklevel=2)
     dirnames = os.listdir(path)
-    pkgs = []
-
-    for dname in dirnames:
-        if os.path.exists(os.path.join(path, dname, dname+".yaml")):
-            pkgs += [dname]
-
-    return pkgs
+    return [
+        dname
+        for dname in dirnames
+        if os.path.exists(os.path.join(path, dname, f"{dname}.yaml"))
+    ]
 
 
 def list_packages(location="all", url=None, local_dir=None,
@@ -104,10 +102,7 @@ def list_packages(location="all", url=None, local_dir=None,
             print_package_list(server_pkgs, f"on the server: {url}")
             return_pkgs_list += server_pkgs
 
-    if return_pkgs:
-        return return_pkgs_list
-
-    return None
+    return return_pkgs_list if return_pkgs else None
 
 def download_package(pkg_path, save_dir=None, url=None, from_cache=None):
     """

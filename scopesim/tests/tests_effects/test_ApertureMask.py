@@ -53,30 +53,30 @@ class TestHeader:
 
 class TestMask:
     def test_returns_mask_that_covers_everything_for_zero_angle(self):
-        kwargs = {"array_dict": {"x": [-1.5, 1.5, 1.5, -1.5],
-                                 "y": [-0.01, -0.01, 0.01, 0.01]},
-                  "x_unit": "arcsec",
-                  "y_unit": "arcsec",
-                  "pixel_scale": 0.004,
-                  "no_mask": False}
-        apm = ApertureMask(**kwargs)
         # known issue - for super thin apertures, the first row is masked
         # assert np.all(apm.mask)
 
         if PLOTS:
+            kwargs = {"array_dict": {"x": [-1.5, 1.5, 1.5, -1.5],
+                                     "y": [-0.01, -0.01, 0.01, 0.01]},
+                      "x_unit": "arcsec",
+                      "y_unit": "arcsec",
+                      "pixel_scale": 0.004,
+                      "no_mask": False}
+            apm = ApertureMask(**kwargs)
             plt.imshow(apm.mask.T)
             plt.show()
 
     def test_returns_mask_for_super_wierd_aperture(self):
-        kwargs = {"array_dict": {"x": [-1, 1, 0, 1, -1, -0.5],
-                                 "y": [-0.7, -1, 0, 1, 0.8, 0]},
-                  "x_unit": "arcsec",
-                  "y_unit": "arcsec",
-                  "pixel_scale": 0.1,
-                  "no_mask": False}
-        apm = ApertureMask(**kwargs)
-
         if PLOTS:
+            kwargs = {"array_dict": {"x": [-1, 1, 0, 1, -1, -0.5],
+                                     "y": [-0.7, -1, 0, 1, 0.8, 0]},
+                      "x_unit": "arcsec",
+                      "y_unit": "arcsec",
+                      "pixel_scale": 0.1,
+                      "no_mask": False}
+            apm = ApertureMask(**kwargs)
+
             plt.imshow(apm.mask.T)
             plt.show()
 

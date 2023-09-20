@@ -73,11 +73,7 @@ class SpectralSurface:
 
     @property
     def mirror_angle(self):
-        if "angle" in self.meta:
-            mirr_angle = self.from_meta("angle", u.deg)
-        else:
-            mirr_angle = 0 * u.deg
-        return mirr_angle
+        return self.from_meta("angle", u.deg) if "angle" in self.meta else 0 * u.deg
 
     @property
     def wavelength(self):
@@ -161,9 +157,7 @@ class SpectralSurface:
         """
         if default_unit is None:
             default_unit = ""
-        meta_quantity = get_meta_quantity(self.meta, key, u.Unit(default_unit))
-
-        return meta_quantity
+        return get_meta_quantity(self.meta, key, u.Unit(default_unit))
 
     def _get_ter_property(self, ter_property, fmt="synphot"):
         """
@@ -223,15 +217,13 @@ class SpectralSurface:
         compliment_b = self._get_array(colname_b)
 
         if compliment_a is not None and compliment_b is not None:
-            actual = 1*compliment_a.unit - (compliment_a + compliment_b)
-        elif compliment_a is not None and compliment_b is None:
-            actual = 1*compliment_a.unit - compliment_a
-        elif compliment_b is not None and compliment_a is None:
-            actual = 1*compliment_b.unit - compliment_b
-        elif compliment_b is None and compliment_a is None:
-            actual = None
-
-        return actual
+            return 1*compliment_a.unit - (compliment_a + compliment_b)
+        elif compliment_a is not None:
+            return 1*compliment_a.unit - compliment_a
+        elif compliment_b is not None:
+            return 1*compliment_b.unit - compliment_b
+        else:
+            return None
 
     def _get_array(self, colname):
         """
@@ -258,7 +250,7 @@ class SpectralSurface:
                           colname, self.meta.get("name", self.meta["filename"]))
             return None
 
-        col_units = colname+"_unit"
+        col_units = f"{colname}_unit"
         if isinstance(val, u.Quantity):
             units = val.unit
         elif col_units in self.meta:
@@ -279,14 +271,10 @@ class SpectralSurface:
         return val_out
 
     def __repr__(self):
-        msg = (f"{self.__class__.__name__}({self.meta['filename']}, "
-               f"**{self.meta!r})")
-        return msg
+        return f"{self.__class__.__name__}({self.meta['filename']}, **{self.meta!r})"
 
     def __str__(self):
         meta = self.meta
         name = meta["name"] if "name" in meta else meta["filename"]
         cols = "".join([col[0].upper() for col in self.table.colnames])
-        msg = f"SpectralSurface [{cols}] \"{name}\""
-
-        return msg
+        return f'SpectralSurface [{cols}] \"{name}\"'

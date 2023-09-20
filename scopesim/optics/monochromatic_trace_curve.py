@@ -25,12 +25,11 @@ class MonochromeTraceCurve:
 
     @property
     def header(self):
-        if "pixel_size" in self.meta:
-            hdr = self.get_header(self.meta["pixel_size"])
-        else:
-            hdr = self._header
-
-        return hdr
+        return (
+            self.get_header(self.meta["pixel_size"])
+            if "pixel_size" in self.meta
+            else self._header
+        )
 
     def get_header(self, pixel_size):
 

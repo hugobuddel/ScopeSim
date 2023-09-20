@@ -99,10 +99,7 @@ def local_db_paths(name=None):
 
     local_dict = {"inst" : _local_inst_db(), "psf" : _local_psf_db(),
                   "st" : _local_src_db()}
-    if name is None:
-        return local_dict
-    else:
-        return local_dict[name]
+    return local_dict if name is None else local_dict[name]
 
 
 def server_db_urls(name=None):
@@ -122,10 +119,7 @@ def server_db_urls(name=None):
 
     svr_dict = {"inst": _svr_inst_db(), "psf": _svr_psf_db(),
                 "st": _svr_src_db()}
-    if name is None:
-        return svr_dict
-    else:
-        return svr_dict[name]
+    return svr_dict if name is None else svr_dict[name]
 
 
 def set_up_local_package_directory(dirname=None, overwrite=False):
@@ -168,8 +162,9 @@ def set_up_local_package_directory(dirname=None, overwrite=False):
         if not os.path.exists(dname):
             os.makedirs(dname)
         elif not overwrite:
-            print("{} already exists. If you would like to overwrite it, set"
-                  "overwrite=True".format(dname))
+            print(
+                f"{dname} already exists. If you would like to overwrite it, setoverwrite=True"
+            )
 
     # make db files
     now = dt.datetime.now().strftime('%Y-%m-%d')
@@ -181,9 +176,10 @@ def set_up_local_package_directory(dirname=None, overwrite=False):
             with open(loc_db, "w") as new_db:
                 hdr_text = LOCAL_DB_HEADER_PATTERN.format(now, now, pkg_type)
                 new_db.write(hdr_text)
-        elif not overwrite:
-            print("{} already exists. If you would like to overwrite it, set"
-                  "'overwrite=True'".format(loc_db))
+        else:
+            print(
+                f"{loc_db} already exists. If you would like to overwrite it, set'overwrite=True'"
+            )
 
 
 def get_local_packages(path=None):
@@ -222,7 +218,7 @@ def get_local_packages(path=None):
         path = _local_inst_db()
 
     if not os.path.exists(path):
-        raise ValueError(path + " doesn't exist")
+        raise ValueError(f"{path} doesn't exist")
 
     # If this throws an error, it's because the DB file is not formatted
     # correctly
@@ -247,8 +243,7 @@ def get_server_text(path=None):
         server_db_text = requests.get(path).text
         server_db_text = server_db_text.replace("\r", "")
     except:
-        logging.warning("Connection could not be established to "
-                      "{}".format(_svr_inst_db()))
+        logging.warning(f"Connection could not be established to {_svr_inst_db()}")
         server_db_text = None
 
     return server_db_text
@@ -341,9 +336,9 @@ def list_packages(local_path=None, server_url=None, return_table=False,
     else:
         all_table = vstack(local_table, svr_table)
 
-    print("\n{} saved offline\n".format(msg) + "="*(len(msg)+14))
+    print(f"\n{msg} saved offline\n" + "="*(len(msg)+14))
     print(local_table)
-    print("\n{} on the server\n".format(msg) + "="*(len(msg)+14))
+    print(f"\n{msg} on the server\n" + "="*(len(msg)+14))
     print(svr_table)
 
     if return_table:
@@ -500,17 +495,15 @@ def check_package_exists(pkg_name, svr_path=None):
     svr_table = get_server_packages(svr_path)
     pkg_entry = get_package_table_entry(pkg_name, svr_table)
 
-    if pkg_entry is not None:
-        url = os.path.join(svr_base_url, pkg_entry["path"]).replace("\\", "/")
+    if pkg_entry is None:
+        return False
 
-        if not requests.get(url).ok:
-            raise ValueError(url + " doesn't return ALL_GOOD (200)")
+    url = os.path.join(svr_base_url, pkg_entry["path"]).replace("\\", "/")
 
-        return_val = True
-    else:
-        return_val = False
+    if not requests.get(url).ok:
+        raise ValueError(f"{url} doesn't return ALL_GOOD (200)")
 
-    return return_val
+    return True
 
 
 def get_server_package_path(pkg_name, svr_table):
@@ -518,7 +511,7 @@ def get_server_package_path(pkg_name, svr_table):
 
     pkg_path = None
     if pkg_name in svr_table["name"]:
-        svr_dict = {n: p for n, p in zip(svr_table["name"], svr_table["path"])}
+        svr_dict = dict(zip(svr_table["name"], svr_table["path"]))
         pkg_path = svr_dict[pkg_name]
 
     return pkg_path
@@ -530,11 +523,9 @@ def get_package_table_entry(pkg_name, db_table):
     # ::todo implement multiple entry handling
     if pkg_name in db_table["name"]:
         pkg_index = npwhere(db_table["name"] == pkg_name)[0]
-        pkg_entry = db_table[pkg_index[0]]
+        return db_table[pkg_index[0]]
     else:
-        pkg_entry = None
-
-    return pkg_entry
+        return None
 
 
 def determine_type_of_package(svr_db_filename):
@@ -571,17 +562,15 @@ def extract_package(pkg_name, overwrite=True):
     else:
         pkg_entry = find_package_on_disk(pkg_name)
         if not isinstance(pkg_entry, Row):
-            raise ValueError("{} wasn't found on disk".format(pkg_name))
+            raise ValueError(f"{pkg_name} wasn't found on disk")
 
         file_path = os.path.join(rc.__rc__["FILE_LOCAL_DOWNLOADS_PATH"],
                                  pkg_entry["path"])
 
     new_dir = file_path.replace(".zip", "")
-    if os.path.exists(new_dir) and not overwrite:
-        pass
-    else:
+    if not os.path.exists(new_dir) or overwrite:
         if os.path.exists(new_dir):
-            print("{} exists, but overwriting anyway".format(pkg_name))
+            print(f"{pkg_name} exists, but overwriting anyway")
         with zf.ZipFile(file_path) as pkg_zip:
             pkg_zip.extractall(new_dir)
 
@@ -646,13 +635,13 @@ def download_package(pkg_name, unzip_package=True, save_dir=None,
                                                return_db_filename=True)
 
     if pkg_entry is None:
-        raise ValueError("{} wasn't found on the server".format(pkg_name))
+        raise ValueError(f"{pkg_name} wasn't found on the server")
 
     pkg_url = rc.__rc__["FILE_SERVER_BASE_URL"] + pkg_entry["path"]
     pkg_type = determine_type_of_package(svr_db)
 
     if not check_package_exists(pkg_name, server_db_urls()[pkg_type]):
-        raise ValueError("Package is missing: " + pkg_name)
+        raise ValueError(f"Package is missing: {pkg_name}")
 
     if save_dir is None:
         stem = os.path.dirname(pkg_entry["path"])
@@ -662,11 +651,11 @@ def download_package(pkg_name, unzip_package=True, save_dir=None,
         os.mkdir(save_dir)
 
     local_filename = download_file(pkg_url, save_dir)
-    print("Saved {} in {}".format(pkg_name, local_filename))
+    print(f"Saved {pkg_name} in {local_filename}")
     if unzip_package and ".fits" not in local_filename:
         extract_package(local_filename, overwrite=True)
         unzip_dir = local_filename.replace(".zip", "")
-        print("Unzipped {} to {}".format(pkg_name, unzip_dir))
+        print(f"Unzipped {pkg_name} to {unzip_dir}")
 
     local_db_path = local_db_paths()[pkg_type]
     new_local_tbl = add_pkg_to_local_db(pkg_entry, local_db_path)
@@ -791,22 +780,24 @@ def add_pkg_to_local_db(new_row, local_db):
 
             dic = {col : local_table[ii][col] for col in local_table.colnames}
             dic["name"] = dic["name"] + "_" + dic["date_modified"]
-            new_tbl = Table(names=[col for col in dic],
-                            data=[[dic[col]] for col in dic])
-            new_tbl_2 = Table(names=[col for col in new_row.colnames],
-                              data=[[new_row[col]] for col in new_row.colnames])
+            new_tbl = Table(names=list(dic), data=[[dic[col]] for col in dic])
+            new_tbl_2 = Table(
+                names=list(new_row.colnames),
+                data=[[new_row[col]] for col in new_row.colnames],
+            )
             tbl_to_add = vstack([new_tbl, new_tbl_2])
 
             local_table.remove_row(ii)
         else:
             dic = {col: new_row[col] for col in new_row.colnames}
             dic["name"] = dic["name"] + "_" + dic["date_modified"]
-            tbl_to_add = Table(names=[col for col in dic],
-                               data=[[dic[col]] for col in dic])
+            tbl_to_add = Table(names=list(dic), data=[[dic[col]] for col in dic])
 
     else:
-        tbl_to_add = Table(names=[col for col in new_row.colnames],
-                           data=[[new_row[col]] for col in new_row.colnames])
+        tbl_to_add = Table(
+            names=list(new_row.colnames),
+            data=[[new_row[col]] for col in new_row.colnames],
+        )
 
     new_local_table = vstack([local_table, tbl_to_add])
     new_local_table.meta = local_table.meta

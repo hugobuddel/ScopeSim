@@ -219,7 +219,7 @@ class TestGetImagingFOVs:
 @pytest.mark.usefixtures("spec_hdrs")
 class TestGetSpectroscopyHeaders:
     def test_returns_headers(self, spec_hdrs):
-        assert all([isinstance(hdr, PoorMansHeader) for hdr in spec_hdrs])
+        assert all(isinstance(hdr, PoorMansHeader) for hdr in spec_hdrs)
 
         if PLOTS:
             for hdr in spec_hdrs:
@@ -241,7 +241,7 @@ class TestGetSpectroscopyFOVs:
         # Evaluate generator for testing
         fovs = list(fovs)
 
-        assert all([isinstance(fov, FieldOfView) for fov in fovs])
+        assert all(isinstance(fov, FieldOfView) for fov in fovs)
 
         if PLOTS:
             ax1 = plt.subplot(121)

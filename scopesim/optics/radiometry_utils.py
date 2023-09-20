@@ -133,10 +133,9 @@ def add_surface_to_table(tbl, surf, name, position, silent=True):
                 surf_val = surf_val.value
             new_tbl = change_table_entry(new_tbl, colname, surf_val,
                                          position=position)
-        else:
-            if not silent:
-                logging.warning(("%s was not found in the meta dictionary of %s. "
-                                 "This could cause problems"), colname, name)
+        elif not silent:
+            logging.warning(("%s was not found in the meta dictionary of %s. "
+                             "This could cause problems"), colname, name)
 
     colname = real_colname("name", new_tbl.colnames)
     new_tbl = change_table_entry(new_tbl, colname, name, position=position)
@@ -164,6 +163,4 @@ def make_surface_dict_from_table(tbl):
 def make_surface_from_row(row, **kwargs):
     row_dict = {colname.lower(): row[colname] for colname in row.colnames}
     kwargs.update(row_dict)
-    surface = SpectralSurface(**kwargs)
-
-    return surface
+    return SpectralSurface(**kwargs)

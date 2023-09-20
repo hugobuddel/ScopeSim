@@ -167,14 +167,13 @@ def tracking(arr, cmds):
     ===== Currently a place holder with minimum functionality =========
     !! TODO, work out the shift during the DIT for the object RA, DEC etc !!
     """
-    if cmds["SCOPE_DRIFT_DISTANCE"] > 0.:
-        pix_res = cmds["SIM_PIXEL_SCALE"] / cmds["SIM_OVERSAMPLING"]
-        kernel = cmds["SCOPE_DRIFT_PROFILE"]
-        shift = cmds["SCOPE_DRIFT_DISTANCE"] / pix_res
-
-        return _line_blur(arr, shift, kernel=kernel, angle=0)
-    else:
+    if cmds["SCOPE_DRIFT_DISTANCE"] <= 0.0:
         return arr
+    pix_res = cmds["SIM_PIXEL_SCALE"] / cmds["SIM_OVERSAMPLING"]
+    kernel = cmds["SCOPE_DRIFT_PROFILE"]
+    shift = cmds["SCOPE_DRIFT_DISTANCE"] / pix_res
+
+    return _line_blur(arr, shift, kernel=kernel, angle=0)
 
 
 def derotator(arr, cmds):
@@ -183,18 +182,17 @@ def derotator(arr, cmds):
     ===== Currently a place holder with minimum functionality =========
     !! TODO, work out the rotation during the DIT for the object RA, DEC etc !!
     """
-    if cmds["INST_DEROT_PERFORMANCE"] < 100.:
-        eff = 1. - (cmds["INST_DEROT_PERFORMANCE"] / 100.)
-        kernel = cmds["INST_DEROT_PROFILE"]
-        angle = eff * cmds["OBS_EXPTIME"] * 15 / 3600.
-
-        edge_smear = angle / cmds.pix_res
-        if edge_smear > 50:
-            print("The smear at the detector edge is large:", edge_smear, "[px]")
-
-        return _rotate_blur(arr, angle, kernel=kernel)
-    else:
+    if cmds["INST_DEROT_PERFORMANCE"] >= 100.0:
         return arr
+    eff = 1. - (cmds["INST_DEROT_PERFORMANCE"] / 100.)
+    kernel = cmds["INST_DEROT_PROFILE"]
+    angle = eff * cmds["OBS_EXPTIME"] * 15 / 3600.
+
+    edge_smear = angle / cmds.pix_res
+    if edge_smear > 50:
+        print("The smear at the detector edge is large:", edge_smear, "[px]")
+
+    return _rotate_blur(arr, angle, kernel=kernel)
 
 
 def wind_jitter(arr, cmds):
@@ -317,10 +315,7 @@ def make_distortion_maps(real_xy, detector_xy, step=1):
     pri_hdu.header["EXT2"] = ("DY", "The y coordinate corrections")
     pri_hdu.header["EXT3"] = ("BinTable", "The data used to generate the distortion maps")
 
-    # put it all together
-    hdulist = fits.HDUList([pri_hdu, dx_hdu, dy_hdu, tb_hdu])
-
-    return hdulist
+    return fits.HDUList([pri_hdu, dx_hdu, dy_hdu, tb_hdu])
 
 
 def get_distorion_offsets(x, y, dist_map_hdus, corners):
@@ -375,7 +370,9 @@ def get_distorion_offsets(x, y, dist_map_hdus, corners):
 
 
     if xdist_hdu.shape != ydist_hdu.shape:
-        raise ValueError("Shape of X and Y distortion maps must be equal: "+str(xdist.shape)+" "+str(ydist.shape))
+        raise ValueError(
+            f"Shape of X and Y distortion maps must be equal: {str(xdist.shape)} {str(ydist.shape)}"
+        )
 
     xbins = np.linspace(corners[0], corners[1], xdist_hdu.header["NAXIS1"])
     ybins = np.linspace(corners[2], corners[3], xdist_hdu.header["NAXIS2"])

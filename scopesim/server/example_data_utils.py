@@ -93,13 +93,10 @@ def list_example_data(url: Optional[str] = None,
         files = get_server_elements(url + folder, ("fits", "txt", "dat"))
         server_files += files
     if not silent:
-        print_file_list(server_files, f"on the server: {url + 'example_data/'}")
+        print_file_list(server_files, f"on the server: {url}example_data/")
         return_file_list += server_files
 
-    if return_files:
-        return return_file_list
-
-    return None
+    return return_file_list if return_files else None
 
 
 def download_example_data(file_path: Union[Iterable[str], str],
@@ -132,11 +129,10 @@ def download_example_data(file_path: Union[Iterable[str], str],
         The absolute path(s) to the saved files
     """
     if isinstance(file_path, Iterable) and not isinstance(file_path, str):
-        # Recursive
-        save_path = [download_example_data(thefile, save_dir, url)
-                     for thefile in file_path]
-        return save_path
-
+        return [
+            download_example_data(thefile, save_dir, url)
+            for thefile in file_path
+        ]
     if not isinstance(file_path, str):
         raise TypeError("file_path must be str or iterable of str, found "
                         f"{type(file_path) = }")
@@ -157,7 +153,7 @@ def download_example_data(file_path: Union[Iterable[str], str],
         save_path = save_dir / file_path.name
         file_path = shutil.copy2(cache_path, str(save_path))
     except (HTTPError, HTTPError3) as error:
-        msg = f"Unable to find file: {url + 'example_data/' + file_path}"
+        msg = f"Unable to find file: {url}example_data/{file_path}"
         raise ValueError(msg) from error
 
     save_path = save_path.absolute()

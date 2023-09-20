@@ -174,11 +174,9 @@ class ApertureMask(Effect):
             x = quantity_from_table("x", self.table, u.arcsec).to(u.deg).value
             y = quantity_from_table("y", self.table, u.arcsec).to(u.deg).value
             pixel_scale_deg = self.meta["pixel_scale"] / 3600.
-            mask = mask_from_coords(x, y, pixel_scale_deg)
+            return mask_from_coords(x, y, pixel_scale_deg)
         else:
-            mask = None
-
-        return mask
+            return None
 
     def plot(self, axes=None):
         if axes is None:
@@ -223,9 +221,7 @@ class RectangularApertureMask(ApertureMask):
         dy = 0.5 * from_currsys(self.meta["height"])
         xs = [x - dx, x + dx, x + dx, x - dx]
         ys = [y - dy, y - dy, y + dy, y + dy]
-        tbl = Table(names=["x", "y"], data=[xs, ys], meta=self.meta)
-
-        return tbl
+        return Table(names=["x", "y"], data=[xs, ys], meta=self.meta)
 
 
 class ApertureList(Effect):
@@ -373,14 +369,13 @@ class ApertureList(Effect):
         return fig
 
     def __add__(self, other):
-        if isinstance(other, ApertureList):
-            from astropy.table import vstack
-            self.table = vstack([self.table, other.table])
-
-            return self
-        else:
+        if not isinstance(other, ApertureList):
             raise ValueError("Secondary argument not of type ApertureList: "
                              f"{type(other) = }")
+        from astropy.table import vstack
+        self.table = vstack([self.table, other.table])
+
+        return self
 
     # def __getitem__(self, item):
     #     return self.get_apertures(item)[0]
@@ -462,11 +457,10 @@ class SlitWheel(Effect):
 
     def change_slit(self, slitname=None):
         """Change the current slit."""
-        if not slitname or slitname in self.slits.keys():
-            self.meta["current_slit"] = slitname
-            self.include = slitname
-        else:
-            raise ValueError("Unknown slit requested: " + slitname)
+        if slitname and slitname not in self.slits.keys():
+            raise ValueError(f"Unknown slit requested: {slitname}")
+        self.meta["current_slit"] = slitname
+        self.include = slitname
 
     def add_slit(self, newslit, name=None):
         """
@@ -487,9 +481,7 @@ class SlitWheel(Effect):
     def current_slit(self):
         """Return the currently used slit."""
         currslit = from_currsys(self.meta["current_slit"])
-        if not currslit:
-            return False
-        return self.slits[currslit]
+        return False if not currslit else self.slits[currslit]
 
     def __getattr__(self, item):
         return getattr(self.current_slit, item)
@@ -520,9 +512,10 @@ class SlitWheel(Effect):
         widths = ymax - ymin
         x_centres = (xmax + xmin) / 2
         y_centres = (ymax + ymin) / 2
-        tbl = Table(names=["name", "x_centre", "y_centre", "length", "width"],
-                    data=[names, x_centres, y_centres, lengths, widths])
-        return tbl
+        return Table(
+            names=["name", "x_centre", "y_centre", "length", "width"],
+            data=[names, x_centres, y_centres, lengths, widths],
+        )
 
 
 ###############################################################################
@@ -530,8 +523,8 @@ class SlitWheel(Effect):
 
 def make_aperture_polygon(left, right, top, bottom, angle, shape, **kwargs):
 
-    n_round = kwargs["n_round"] if "n_round" in kwargs else 32
-    offset = kwargs["offset"] if "offset" in kwargs else 0.
+    n_round = kwargs.get("n_round", 32)
+    offset = kwargs.get("offset", 0.)
 
     n_corners = {"rect": 4, "hex": 6, "oct": 8, "round": n_round}
     try:
@@ -572,14 +565,12 @@ def mask_from_coords(x, y, pixel_scale):
     yrange = np.linspace(np.min(y), np.max(y), naxis2)
     coords = [(xi, yi) for xi in xrange for yi in yrange]
 
-    corners = [(xi, yi) for xi, yi in zip(x, y)]
+    corners = list(zip(x, y))
     path = MPLPath(corners)
     # ..todo: known issue - for super thin apertures, the first row is masked
     # rad = 0.005
     rad = 0  # increase this to include slightly more points within the polygon
-    mask = path.contains_points(coords, radius=rad).reshape((naxis2, naxis1))
-
-    return mask
+    return path.contains_points(coords, radius=rad).reshape((naxis2, naxis1))
 
 
 def rotate(x, y, x0, y0, angle):

@@ -99,9 +99,7 @@ class DetectorArray:
         return self.latest_exposure
 
     def __repr__(self):
-        msg = (f"{self.__class__.__name__}"
-               f"({self.detector_list!r}, **{self.meta!r})")
-        return msg
+        return f"{self.__class__.__name__}({self.detector_list!r}, **{self.meta!r})"
 
     def __str__(self):
         return f"{self.__class__.__name__} with {self.detector_list!s}"

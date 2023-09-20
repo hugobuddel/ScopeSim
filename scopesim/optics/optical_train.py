@@ -325,7 +325,7 @@ class OpticalTrain:
         # Primary hdu
         pheader = hdulist[0].header
         pheader["DATE"] = datetime.now().isoformat(timespec="seconds")
-        pheader["ORIGIN"] = "Scopesim " + version
+        pheader["ORIGIN"] = f"Scopesim {version}"
         pheader["INSTRUME"] = from_currsys("!OBS.instrument")
         pheader["INSTMODE"] = ", ".join(from_currsys("!OBS.modes"))
         pheader["TELESCOP"] = from_currsys("!TEL.telescope")
@@ -334,9 +334,7 @@ class OpticalTrain:
         # Source information taken from first only.
         # ..todo: What if source is a composite?
         srcfield = self._last_source.fields[0]
-        if type(srcfield).__name__ == "Table":
-            pheader["SOURCE"] = "Table"
-        elif type(srcfield).__name__ == "ImageHDU":
+        if type(srcfield).__name__ == "ImageHDU":
             if "BG_SURF" in srcfield.header:
                 pheader["SOURCE"] = srcfield.header["BG_SURF"]
             else:
@@ -345,6 +343,8 @@ class OpticalTrain:
                 except KeyError:
                     pheader["SOURCE"] = "ImageHDU"
 
+        elif type(srcfield).__name__ == "Table":
+            pheader["SOURCE"] = "Table"
         # Image hdul
         # ..todo: currently only one, update for detector arrays
         # ..todo: normalise filenames - some need from_currsys, some need Path(...).name

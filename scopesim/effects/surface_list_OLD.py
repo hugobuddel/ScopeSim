@@ -180,17 +180,15 @@ class SurfaceList(Effect):
 
     @property
     def area(self):
-        if not self.is_empty:
-            tbl = self.radiometry_table.table
-            outer_col = utils.real_colname("outer", tbl.colnames)
-            inner_col = utils.real_colname("inner", tbl.colnames)
-            outer = utils.quantity_from_table(outer_col, tbl, u.m)
-            inner = utils.quantity_from_table(inner_col, tbl, u.m)
-            scope_area = np.max(np.pi / 4 * (outer ** 2 - inner ** 2))
-        else:
-            scope_area = 0
+        if self.is_empty:
+            return 0
 
-        return scope_area
+        tbl = self.radiometry_table.table
+        outer_col = utils.real_colname("outer", tbl.colnames)
+        inner_col = utils.real_colname("inner", tbl.colnames)
+        outer = utils.quantity_from_table(outer_col, tbl, u.m)
+        inner = utils.quantity_from_table(inner_col, tbl, u.m)
+        return np.max(np.pi / 4 * (outer ** 2 - inner ** 2))
 
     @property
     def is_empty(self):

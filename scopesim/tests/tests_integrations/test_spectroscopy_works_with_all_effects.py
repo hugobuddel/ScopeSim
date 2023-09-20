@@ -104,7 +104,7 @@ class TestSpectroscopyFOVs:
         fov_mgr = FOVManager(effects=fov_setup_effects, **config_yaml)
         fovs = fov_mgr.fovs
 
-        assert all([isinstance(fov, FieldOfView) for fov in fovs])
+        assert all(isinstance(fov, FieldOfView) for fov in fovs)
 
         implane = ImagePlane(det_list.image_plane_header)
         for fov in fovs:
@@ -141,7 +141,7 @@ class TestSpectroscopyFOVs:
         fov_mgr = FOVManager(effects=fov_setup_effects, **config_yaml)
         fovs = fov_mgr.fovs
 
-        assert all([isinstance(fov, FieldOfView) for fov in fovs])
+        assert all(isinstance(fov, FieldOfView) for fov in fovs)
 
         implane = ImagePlane(det_list.image_plane_header)
         for fov in fovs:
@@ -176,7 +176,7 @@ class TestSpectroscopyFOVs:
         fov_mgr = FOVManager(effects=fov_setup_effects, **config_yaml)
         fovs = fov_mgr.fovs
 
-        assert all([isinstance(fov, FieldOfView) for fov in fovs])
+        assert all(isinstance(fov, FieldOfView) for fov in fovs)
 
         implane = ImagePlane(det_list.image_plane_header)
         for fov in fovs:

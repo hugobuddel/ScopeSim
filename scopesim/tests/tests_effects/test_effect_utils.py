@@ -80,4 +80,4 @@ class TestScopesimEffectClasses:
     def test_only_psf_effects_returned(self):
         all_efs = eu.scopesim_effect_classes(efs.PSF)
         assert efs.Effect not in list(all_efs.values())
-        assert all(["psf" in eff for eff in all_efs])
+        assert all("psf" in eff for eff in all_efs)

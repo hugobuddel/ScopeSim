@@ -46,9 +46,7 @@ def fixture_ter_table():
 @pytest.fixture(name="input_tables", scope="module")
 def fixture_input_tables():
     filenames = ["TER_dichroic.dat", "TC_filter_Ks.dat"]
-    abs_paths = [os.path.join(MOCK_DIR, fname) for fname in filenames]
-
-    return abs_paths
+    return [os.path.join(MOCK_DIR, fname) for fname in filenames]
 
 
 @pytest.fixture(name="unity_flux", scope="module")
@@ -171,10 +169,10 @@ class TestSpectralSurfaceComplimentArray:
         col3 = srf._compliment_array(colname1, colname2)
         if sys.version_info.major >= 3:
             assert np.all(np.isclose(col3.data, expected.data))
-            assert col3.unit == expected.unit
         else:
             logging.warning("Data equality isn't tested for 2.7")
-            assert col3.unit == expected.unit
+
+        assert col3.unit == expected.unit
 
     @pytest.mark.parametrize("colname1, colname2, col1, col2, expected",
                              [("A",     "B",      None, None, None)])

@@ -31,9 +31,7 @@ def _table_source():
                       [5, -10, 5,  0] * u.arcsec,
                       [2,  0,  1,  0],
                       [1,  1,  1,  2]])
-    tbl_source = Source(table=tbl, spectra=specs)
-
-    return tbl_source
+    return Source(table=tbl, spectra=specs)
 
 
 def _image_source(dx=0, dy=0, angle=0, weight=1):
@@ -95,9 +93,7 @@ def _fits_image_source():
                             lookup_table=np.linspace(0, 4, n) * unit)]
 
     hdulist = fits.open(os.path.join(FILES_PATH, "test_image.fits"))
-    fits_src = Source(image_hdu=hdulist[0], spectra=specs)
-
-    return fits_src
+    return Source(image_hdu=hdulist[0], spectra=specs)
 
 
 def _cube_source(**kwargs):
@@ -150,9 +146,7 @@ def _combined_source(im_angle=0, dx=[0, 0, 0], dy=[0, 0, 0], weight=[1, 1, 1]):
 
     imsrc = _image_source(dx[2], dy[2], im_angle, weight[2])
 
-    src = tblsrc1 + tblsrc2 + tblsrc3 + imsrc
-
-    return src
+    return tblsrc1 + tblsrc2 + tblsrc3 + imsrc
 
 
 def _single_table_source(weight=1, n=3):
@@ -162,9 +156,7 @@ def _single_table_source(weight=1, n=3):
                             lookup_table=np.ones(n) * weight * unit)]
     tbl = Table(names=["x", "y", "ref", "weight"],
                 data=[[0]*u.arcsec, [0]*u.arcsec, [0], [1]])
-    tbl_source = Source(table=tbl, spectra=specs)
-
-    return tbl_source
+    return Source(table=tbl, spectra=specs)
 
 
 def _unity_source(dx=0, dy=0, angle=0, weight=1, n=100):
@@ -206,15 +198,11 @@ def _empty_sky():
                             lookup_table=np.zeros(n) * unit)]
     tbl = Table(names=["x", "y", "ref", "weight"],
                 data=[[0], [0], [0], [0]])
-    tbl_source = Source(table=tbl, spectra=specs)
-
-    return tbl_source
+    return Source(table=tbl, spectra=specs)
 
 
 def _vega_source(mag=0, x=0, y=0):
     specs = [vega_spectrum(mag)]
     tbl = Table(names=["x", "y", "ref", "weight"],
                 data=[[x]*u.arcsec, [y]*u.arcsec, [0], [1]])
-    tbl_source = Source(table=tbl, spectra=specs)
-
-    return tbl_source
+    return Source(table=tbl, spectra=specs)

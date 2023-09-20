@@ -113,8 +113,7 @@ def _img_aperture_mask(**kwargs):
                    "x_unit": "arcsec",
                    "y_unit": "arcsec"}
     base_kwargs.update(kwargs)
-    apm = efs.ApertureMask(**base_kwargs)
-    return apm
+    return efs.ApertureMask(**base_kwargs)
 
 
 

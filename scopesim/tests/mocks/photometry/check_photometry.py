@@ -29,12 +29,12 @@ def skycalc_plus_eso_filter_gives_similar_photons_flux_to_ohio():
     ohio_fwhm = {"U": 0.06, "B": 0.09, "V": 0.085, "R": 0.15, "I": 0.15,
                  "J": 0.26, "H": 0.29, "K": 0.41}       # micron
 
+    skycalc_file = "eso_skycalc_r_6000_wave_0.3_15nm_airmass_1_pwv_2.5.dat"
     for filt_name in ohio_zero_ph:
 
         # load the sky background curve and the filter
         print(filt_name)
 
-        skycalc_file = "eso_skycalc_r_6000_wave_0.3_15nm_airmass_1_pwv_2.5.dat"
         filter_file = f"eso_etc_filter_{filt_name}.dat"
         atmo_ter = AtmosphericTERCurve(filename=skycalc_file)
         filt_ter = FilterCurve(filename=filter_file)

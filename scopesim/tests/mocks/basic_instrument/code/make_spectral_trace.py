@@ -40,9 +40,9 @@ def make_lss_trace_file():
     dss = np.array([-30., 10., 0., 10., 30.])
 
     hdus = []
-    for wave_min, wave_max, s_cen, name in zip(wave_mins, wave_maxs, s_cens, names):
-        n = 101
+    n = 101
 
+    for wave_min, wave_max, s_cen, name in zip(wave_mins, wave_maxs, s_cens, names):
         waves = np.geomspace(wave_min, wave_max, n)
         waves = np.array([[w]*5 for w in waves]).flatten()
 
@@ -83,9 +83,9 @@ def make_ifu_trace_file():
     dss = np.array([-14., -7., 0., 7., 14.])     # across slit
 
     hdus = []
-    for s_cen, name in zip(s_cens, names):
-        n = 101
+    n = 101
 
+    for s_cen, name in zip(s_cens, names):
         waves = np.geomspace(wave_min, wave_max, n)
         waves = np.array([[w] * 5 for w in waves]).flatten()    # 5 pos along slit
 

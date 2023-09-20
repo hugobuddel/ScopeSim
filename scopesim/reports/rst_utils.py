@@ -66,7 +66,7 @@ def process_literal_code(node, context_code):
     attribs = node.attributes["classes"]
     action = [att for att in attribs if "format-" not in att]
     format = [att.replace("format-", "") for att in attribs if "format-" in att]
-    format = format if len(format) > 0 else ["png"]
+    format = format if format else ["png"]
     options = {"action": action,
                "format": format}
     if len(node.attributes["names"]) > 0:
@@ -315,9 +315,7 @@ def latexify_rst_text(rst_text, filename=None, path=None, title_char="=",
     with open(file_path, "w") as f:
         f.write(parts["body"])
 
-    tex_str = parts["body"]
-
-    return tex_str
+    return parts["body"]
 
 
 def rstify_rst_text(rst_text, filename=None, path=None, title_char="="):
@@ -340,7 +338,7 @@ def table_to_rst(tbl, indent=0, rounding=None):
         for col in tbl.itercols():
             if col.info.dtype.kind == "f":
                 col.info.format = f".{rounding}f"
-    
+
     tbl_fmtr = TableFormatter()
     lines, outs = tbl_fmtr._pformat_table(tbl, max_width=-1, max_lines=-1,
                                           show_unit=False)
@@ -349,6 +347,4 @@ def table_to_rst(tbl, indent=0, rounding=None):
     lines = [lines[i]] + lines + [lines[i]]
 
     indent = " " * indent
-    rst_str = indent + ("\n" + indent).join(lines)
-
-    return rst_str
+    return indent + ("\n" + indent).join(lines)

@@ -7,9 +7,7 @@ def _basic_aperture():
               "x_unit": "arcsec",
               "y_unit": "arcsec",
               "pixel_scale": 0.1}
-    apm = ApertureMask(**kwargs)
-
-    return apm
+    return ApertureMask(**kwargs)
 
 
 def _basic_micado_slit_aperture():
@@ -19,6 +17,4 @@ def _basic_micado_slit_aperture():
               "y_unit": "arcsec",
               "pixel_scale": 0.004,
               "no_mask": False}
-    apm = ApertureMask(**kwargs)
-
-    return apm
+    return ApertureMask(**kwargs)
